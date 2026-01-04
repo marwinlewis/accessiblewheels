@@ -69,6 +69,7 @@ const CarModifiersPage: React.FC = () => {
     lat: number;
     lng: number;
   } | null>(null);
+  const [visibleShops, setVisibleShops] = useState<Shop[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -157,8 +158,8 @@ const CarModifiersPage: React.FC = () => {
       searchedCity === "your location" ? "" : searchedCity.split(",")[0].trim();
 
     // Separate shops into two groups with calculated distances
-    const shopsFromSearchCity: (Shop & { calculatedDistance?: number })[] = [];
-    const otherShops: (Shop & { calculatedDistance?: number })[] = [];
+    const shopsFromSearchCity: Shop[] = [];
+    const otherShops: Shop[] = [];
 
     // Use user location when available; otherwise fall back to searchLocation
     const origin = userLocation ?? {
@@ -173,10 +174,7 @@ const CarModifiersPage: React.FC = () => {
         shop.lat,
         shop.lng
       );
-      const enrichedShop = { ...shop } as Shop & {
-        calculatedDistance?: number;
-      };
-      enrichedShop.calculatedDistance = distance;
+      const enrichedShop = { ...shop } as Shop;
       enrichedShop.distance = distance;
 
       // Check if shop is from the searched city
@@ -190,12 +188,8 @@ const CarModifiersPage: React.FC = () => {
 
     if (origin) {
       // Sort both groups by distance when we have a user location
-      shopsFromSearchCity.sort(
-        (a, b) => (a.calculatedDistance || 0) - (b.calculatedDistance || 0)
-      );
-      otherShops.sort(
-        (a, b) => (a.calculatedDistance || 0) - (b.calculatedDistance || 0)
-      );
+      shopsFromSearchCity.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      otherShops.sort((a, b) => (a.distance || 0) - (b.distance || 0));
     } else {
       // Without user location, sort by rating as a fallback
       shopsFromSearchCity.sort((a, b) => b.rating - a.rating);
@@ -203,13 +197,11 @@ const CarModifiersPage: React.FC = () => {
     }
 
     // Combine: searched city shops first, then all others
-    const sorted = [...shopsFromSearchCity, ...otherShops];
-    // Keep the calculated distance in the distance field
-    return sorted.map(({ calculatedDistance, ...shop }) => shop);
+    return [...shopsFromSearchCity, ...otherShops];
   }, [shops, searchLocation, userLocation]);
 
-  // Always show all shops in sidebar, sorted by relevance
-  const shopsForList = sortedShops;
+  // Show visible shops when zoomed in, otherwise show sorted shops
+  const shopsForList = visibleShops !== null ? visibleShops : sortedShops;
 
   return (
     <div className="flex flex-col w-full h-screen bg-gray-100">
@@ -270,11 +262,12 @@ const CarModifiersPage: React.FC = () => {
           <ResultsLayout
             mainContent={
               <MapView
-                shops={shops}
+                shops={sortedShops}
                 activeShopId={activeShopId}
                 centerLat={searchLocation.lat}
                 centerLng={searchLocation.lng}
                 onMarkerClick={handleShopClick}
+                onVisibleShopsChange={setVisibleShops}
                 onUserLocation={(lat, lng) => {
                   setUserLocation({ lat, lng });
                   setSearchLocation({ lat, lng, address: "Your location" });

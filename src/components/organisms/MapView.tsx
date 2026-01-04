@@ -14,6 +14,7 @@ interface MapViewProps {
   className?: string;
   onUserLocation?: (lat: number, lng: number) => void;
   onUserLocationError?: (message: string) => void;
+  onVisibleShopsChange?: (visibleShops: Shop[]) => void;
 }
 
 /**
@@ -35,6 +36,7 @@ const MapView: React.FC<MapViewProps> = ({
   className = "",
   onUserLocation,
   onUserLocationError,
+  onVisibleShopsChange,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any | null>(null);
@@ -237,6 +239,49 @@ const MapView: React.FC<MapViewProps> = ({
       googleMapRef.current.setZoom(15);
     }
   }, [activeShopId, shops]);
+
+  // Compute and notify visible shops when map bounds change (zoom/pan)
+  useEffect(() => {
+    if (!googleMapRef.current || !mapReady || !onVisibleShopsChange) return;
+
+    let debounceTimer: NodeJS.Timeout;
+
+    const computeVisibleShops = () => {
+      try {
+        const bounds = googleMapRef.current!.getBounds();
+        if (!bounds) return;
+
+        const visibleShopsList = shops.filter((shop) => {
+          const shopPos = new (window as any).google.maps.LatLng(
+            shop.lat,
+            shop.lng
+          );
+          return bounds.contains(shopPos);
+        });
+
+        onVisibleShopsChange(visibleShopsList);
+      } catch (err) {
+        console.warn("Error computing visible shops:", err);
+      }
+    };
+
+    // Compute visible shops immediately and on bounds_changed
+    computeVisibleShops();
+    const boundsListener = googleMapRef.current.addListener(
+      "bounds_changed",
+      () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(computeVisibleShops, 200);
+      }
+    );
+
+    return () => {
+      clearTimeout(debounceTimer);
+      if (boundsListener) {
+        (window as any).google.maps.event.removeListener(boundsListener);
+      }
+    };
+  }, [mapReady, shops, onVisibleShopsChange]);
 
   return (
     <div

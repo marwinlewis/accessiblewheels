@@ -1,0 +1,134 @@
+[
+  {
+    "id": "mumbai-1",
+    "name": "Marine Drive Custom Works",
+    "rating": 4.7,
+    "reviews": 210,
+    "distance": 2.1,
+    "address": "Parel, Mumbai, Maharashtra",
+    "imageUrl": "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=300&fit=crop",
+    "lat": 19.0134,
+    "lng": 72.8479
+  },
+  {
+    "id": "mumbai-2",
+    "name": "Bandra Performance Garage",
+    "rating": 4.6,
+    "reviews": 127,
+    "distance": 3.4,
+    "address": "Bandra West, Mumbai, Maharashtra",
+    "imageUrl": "https://images.unsplash.com/photo-1511919884226-9a6a1f2d0d0b?w=400&h=300&fit=crop",
+    "lat": 19.0553,
+    "lng": 72.8406
+  },
+  {
+    "id": "delhi-1",
+    "name": "Connaught Custom Motors",
+    "rating": 4.5,
+    "reviews": 190,
+    "distance": 1.9,
+    "address": "Connaught Place, New Delhi",
+    "imageUrl": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop",
+    "lat": 28.6329,
+    "lng": 77.2197
+  },
+  {
+    "id": "delhi-2",
+    "name": "South Delhi Tuning Hub",
+    "rating": 4.4,
+    "reviews": 142,
+    "distance": 4.2,
+    "address": "Greater Kailash, New Delhi",
+    "imageUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop",
+    "lat": 28.5538,
+    "lng": 77.2273
+  },
+  {
+    "id": "blr-1",
+    "name": "Bengaluru Turbo Works",
+    "rating": 4.8,
+    "reviews": 321,
+    "distance": 2.6,
+    "address": "Koramangala, Bengaluru, Karnataka",
+    "imageUrl": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&h=300&fit=crop",
+    "lat": 12.9352,
+    "lng": 77.6101
+  },
+  {
+    "id": "chn-1",
+    "name": "Chennai Custom Garage",
+    "rating": 4.3,
+    "reviews": 88,
+    "distance": 5.0,
+    "address": "Adyar, Chennai, Tamil Nadu",
+    "imageUrl": "https://images.unsplash.com/photo-1509395176047-4a66953fd231?w=400&h=300&fit=crop",
+    "lat": 13.0114,
+    "lng": 80.2456
+  },
+  {
+    "id": "kol-1",
+    "name": "Kolkata Performance House",
+    "rating": 4.2,
+    "reviews": 74,
+    "distance": 3.8,
+    "address": "Park Street, Kolkata, West Bengal",
+    "imageUrl": "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e0?w=400&h=300&fit=crop",
+    "lat": 22.5408,
+    "lng": 88.3524
+  },
+  {
+    "id": "hyd-1",
+    "name": "Hyderabad Mod Shop",
+    "rating": 4.6,
+    "reviews": 156,
+    "distance": 2.7,
+    "address": "Banjara Hills, Hyderabad, Telangana",
+    "imageUrl": "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?w=400&h=300&fit=crop",
+    "lat": 17.399,
+    "lng": 78.456
+  },
+  {
+    "id": "pune-1",
+    "name": "Pune Speed Lab",
+    "rating": 4.4,
+    "reviews": 102,
+    "distance": 4.1,
+    "address": "Kothrud, Pune, Maharashtra",
+    "imageUrl": "https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=400&h=300&fit=crop",
+    "lat": 18.5048,
+    "lng": 73.8206
+  },
+  {
+    "id": "ahm-1",
+    "name": "Ahmedabad Auto Mods",
+    "rating": 4.1,
+    "reviews": 53,
+    "distance": 6.0,
+    "address": "Vastrapur, Ahmedabad, Gujarat",
+    "imageUrl": "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=300&fit=crop",
+    "lat": 23.0365,
+    "lng": 72.5273
+  },
+  {
+    "id": "jaipur-1",
+    "name": "Jaipur Custom & Tune",
+    "rating": 4.0,
+    "reviews": 48,
+    "distance": 7.2,
+    "address": "Malviya Nagar, Jaipur, Rajasthan",
+    "imageUrl": "https://images.unsplash.com/photo-1511919884226-9a6a1f2d0d0b?w=400&h=300&fit=crop",
+    "lat": 26.8858,
+    "lng": 75.829
+  },
+  {
+    "id": "lucknow-1",
+    "name": "Lucknow Performance Center",
+    "rating": 4.2,
+    "reviews": 69,
+    "distance": 5.6,
+    "address": "Alambagh, Lucknow, Uttar Pradesh",
+    "imageUrl": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&h=300&fit=crop",
+    "lat": 26.8351,
+    "lng": 80.9311
+  }
+]

@@ -1,20 +1,35 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import MapMarker from "../atoms/MapMarker";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { type Shop } from "../molecules/ShopCard";
+import { useIsClient } from "@/hooks/useEnvironment";
 
 interface MapViewProps {
   shops: Shop[];
   activeShopId?: string;
   centerLat?: number;
   centerLng?: number;
+  addressType: "city" | "state" | "country";
   onMarkerClick?: (shop: Shop) => void;
   isLoading?: boolean;
   className?: string;
   onUserLocation?: (lat: number, lng: number) => void;
   onUserLocationError?: (message: string) => void;
   onVisibleShopsChange?: (visibleShops: Shop[]) => void;
+}
+
+enum defaultZoom {
+  country = 5,
+  city = 12,
+  street = 15,
+  state = 7,
+}
+
+enum defaultCenter {
+  lat = 20.5937,
+  lng = 78.9629,
 }
 
 /**
@@ -29,8 +44,9 @@ interface MapViewProps {
 const MapView: React.FC<MapViewProps> = ({
   shops,
   activeShopId,
-  centerLat = 40.7128,
-  centerLng = -74.006,
+  centerLat = defaultCenter.lat,
+  centerLng = defaultCenter.lng,
+  addressType = "city",
   onMarkerClick,
   isLoading = false,
   className = "",
@@ -39,55 +55,50 @@ const MapView: React.FC<MapViewProps> = ({
   onVisibleShopsChange,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const googleMapRef = useRef<any | null>(null);
-  const markersRef = useRef<Map<string, any>>(new Map());
-  const userMarkerRef = useRef<any | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const userMarkerRef = useRef<L.Marker | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const isClient = useIsClient();
 
-  // Initialize Google Map
+  // Initialize Leaflet map
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Wait for Google Maps API to load
-    const checkGoogleMaps = setInterval(() => {
-      if ((window as any).google && (window as any).google.maps) {
-        clearInterval(checkGoogleMaps);
+    const map = L.map(mapRef.current, {
+      center: [centerLat, centerLng],
+      zoom: defaultZoom.country,
+      zoomControl: true,
+    });
 
-        googleMapRef.current = new (window as any).google.maps.Map(
-          mapRef.current!,
-          {
-            zoom: 12,
-            center: { lat: centerLat, lng: centerLng },
-            mapTypeControl: false,
-            fullscreenControl: true,
-            zoomControl: true,
-            streetViewControl: false,
-          }
-        );
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
 
-        setMapReady(true);
-      }
-    }, 100);
-
-    // Timeout after 10 seconds
-    const timeout = setTimeout(() => {
-      clearInterval(checkGoogleMaps);
-      console.error("Google Maps API failed to load after 10 seconds");
-    }, 10000);
+    mapInstanceRef.current = map;
+    setMapReady(true);
 
     return () => {
-      clearInterval(checkGoogleMaps);
-      clearTimeout(timeout);
+      map.remove();
+      mapInstanceRef.current = null;
     };
   }, []);
 
   // Pan map when centerLat/centerLng props change without recreating the map
   useEffect(() => {
-    if (!googleMapRef.current || !mapReady) return;
+    if (!mapInstanceRef.current || !mapReady) return;
     try {
-      googleMapRef.current.panTo({ lat: centerLat, lng: centerLng });
-      // Keep a reasonable zoom when panning via search
-      googleMapRef.current.setZoom(12);
+      if (centerLat !== defaultCenter.lat && centerLng !== defaultCenter.lng) {
+        mapInstanceRef.current.panTo([centerLat, centerLng]);
+        if (addressType === "country") {
+          mapInstanceRef.current.setZoom(defaultZoom.country);
+        } else if (addressType === "state") {
+          mapInstanceRef.current.setZoom(defaultZoom.state);
+        } else {
+          mapInstanceRef.current.setZoom(defaultZoom.city);
+        }
+      }
     } catch (err) {
       console.warn("Failed to pan map to new center:", err);
     }
@@ -95,34 +106,28 @@ const MapView: React.FC<MapViewProps> = ({
 
   // Attempt to get the user's current location and center the map there
   useEffect(() => {
-    if (!mapReady || !googleMapRef.current) return;
+    if (!mapReady || !mapInstanceRef.current) return;
 
     if (navigator?.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            googleMapRef.current!.panTo({ lat: latitude, lng: longitude });
-            googleMapRef.current!.setZoom(14);
+            mapInstanceRef.current!.panTo([latitude, longitude]);
+            mapInstanceRef.current!.setZoom(defaultZoom.city);
 
             // Show a small user-location marker
             if (userMarkerRef.current) {
-              userMarkerRef.current.setMap(null);
+              userMarkerRef.current.remove();
             }
 
-            userMarkerRef.current = new (window as any).google.maps.Marker({
-              position: { lat: latitude, lng: longitude },
-              map: googleMapRef.current,
-              title: "Your location",
-              icon: {
-                path: (window as any).google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: "#2563eb",
-                fillOpacity: 0.9,
-                strokeColor: "#ffffff",
-                strokeWeight: 2,
-              },
-            });
+            userMarkerRef.current = L.circleMarker([latitude, longitude], {
+              radius: 6,
+              color: "#ffffff",
+              weight: 2,
+              fillColor: "#2563eb",
+              fillOpacity: 0.9,
+            }).addTo(mapInstanceRef.current!) as any;
 
             onUserLocation?.(latitude, longitude);
           } catch (err) {
@@ -153,7 +158,7 @@ const MapView: React.FC<MapViewProps> = ({
 
           onUserLocationError?.(msg);
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
       );
     } else {
       onUserLocationError?.("Geolocation is not supported by this browser.");
@@ -161,7 +166,7 @@ const MapView: React.FC<MapViewProps> = ({
 
     return () => {
       if (userMarkerRef.current) {
-        userMarkerRef.current.setMap(null);
+        userMarkerRef.current.remove();
         userMarkerRef.current = null;
       }
     };
@@ -169,95 +174,81 @@ const MapView: React.FC<MapViewProps> = ({
 
   // Update markers when shops change
   useEffect(() => {
-    if (!googleMapRef.current || !mapReady) return;
-
-    const infoWindows = new Map<string, any>();
+    if (!mapInstanceRef.current || !mapReady) return;
 
     // Clear old markers
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current.forEach((m) => m.remove());
     markersRef.current.clear();
-    infoWindows.forEach((iw) => iw.close());
 
-    // Add new markers
     shops.forEach((shop) => {
-      const marker = new (window as any).google.maps.Marker({
-        position: { lat: shop.lat, lng: shop.lng },
-        map: googleMapRef.current,
+      const el = document.createElement("div");
+      // Use a simple SVG marker for consistent styling
+      el.innerHTML = `\n        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px; color: ${
+        activeShopId === shop.documentId ? "#dc2626" : "#6a06cf"
+      }">\n          <path d=\"M12 2C6.48 2 2 6.48 2 12c0 7 10 13 10 13s10-6 10-13c0-5.52-4.48-10-10-10zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z\" />\n        </svg>\n      `;
+
+      const marker = L.marker([shop.lat, shop.lng], {
         title: shop.name,
-        animation:
-          activeShopId === shop.id
-            ? (window as any).google.maps.Animation.BOUNCE
-            : undefined,
-        icon: {
-          path: (window as any).google.maps.SymbolPath.CIRCLE,
-          scale: activeShopId === shop.id ? 10 : 7,
-          fillColor: activeShopId === shop.id ? "#dc2626" : "#2563eb",
-          fillOpacity: activeShopId === shop.id ? 0.9 : 0.7,
-          strokeColor: "#fff",
-          strokeWeight: 2,
-        },
-      });
+        riseOnHover: true,
+        icon: L.divIcon({
+          className: "",
+          html: el.outerHTML,
+          iconSize: [24, 24],
+          iconAnchor: [12, 24],
+        }),
+      }).addTo(mapInstanceRef.current!);
 
-      // Info window
-      const distanceText =
-        typeof (shop as any).distance === "number"
-          ? `${(shop as any).distance.toFixed(1)} km away`
-          : "Distance unknown";
+      marker.on("click", () => {
+        marker
+          .bindPopup(
+            `\n            <div style=\"padding: 8px;\">\n              <h3 style=\"margin: 0 0 4px 0; font-weight: 600;\">${
+              shop.name
+            }</h3>\n              <p style=\"margin: 0 0 4px 0; font-size: 12px; color: #666;\">${
+              shop.address
+            }</p>\n              <p style=\"margin: 0; font-size: 12px; font-weight: 600; color: #2563eb;\">${
+              typeof (shop as any).distance === "number"
+                ? `${(shop as any).distance.toFixed(1)} km away`
+                : "Distance unknown"
+            }</p>\n            </div>\n          `,
+          )
+          .openPopup();
 
-      const infoWindow = new (window as any).google.maps.InfoWindow({
-        content: `
-          <div style="padding: 8px;">
-            <h3 style="margin: 0 0 4px 0; font-weight: 600;">${shop.name}</h3>
-            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">${shop.address}</p>
-            <p style="margin: 0; font-size: 12px; font-weight: 600; color: #2563eb;">${distanceText}</p>
-          </div>
-        `,
-      });
-
-      marker.addListener("click", () => {
-        infoWindows.forEach((iw) => iw.close());
-        infoWindow.open(googleMapRef.current, marker);
         onMarkerClick?.(shop);
       });
 
-      markersRef.current.set(shop.id, marker);
-      infoWindows.set(shop.id, infoWindow);
+      markersRef.current.set(shop.documentId, marker);
     });
-
-    return () => {
-      infoWindows.forEach((iw) => iw.close());
-    };
   }, [shops, activeShopId, mapReady, onMarkerClick]);
 
   // Center map on active shop
   useEffect(() => {
-    if (!googleMapRef.current || !activeShopId) return;
+    if (!mapInstanceRef.current || !activeShopId) return;
 
-    const activeShop = shops.find((s) => s.id === activeShopId);
+    const activeShop = shops.find((s) => s.documentId === activeShopId);
     if (activeShop) {
-      googleMapRef.current.panTo({ lat: activeShop.lat, lng: activeShop.lng });
-      googleMapRef.current.setZoom(15);
+      mapInstanceRef.current.panTo([activeShop.lat, activeShop.lng]);
+      if (mapInstanceRef.current) {
+        setTimeout(() => {
+          mapInstanceRef.current?.setZoom(10);
+        }, 800);
+      }
     }
   }, [activeShopId, shops]);
 
   // Compute and notify visible shops when map bounds change (zoom/pan)
   useEffect(() => {
-    if (!googleMapRef.current || !mapReady || !onVisibleShopsChange) return;
+    if (!mapInstanceRef.current || !mapReady || !onVisibleShopsChange) return;
 
     let debounceTimer: NodeJS.Timeout;
 
     const computeVisibleShops = () => {
       try {
-        const bounds = googleMapRef.current!.getBounds();
+        const bounds = mapInstanceRef.current!.getBounds();
         if (!bounds) return;
 
-        const visibleShopsList = shops.filter((shop) => {
-          const shopPos = new (window as any).google.maps.LatLng(
-            shop.lat,
-            shop.lng
-          );
-          return bounds.contains(shopPos);
-        });
+        const visibleShopsList = shops.filter((shop) =>
+          bounds.contains(L.latLng(shop.lat, shop.lng)),
+        );
 
         onVisibleShopsChange(visibleShopsList);
       } catch (err) {
@@ -265,21 +256,17 @@ const MapView: React.FC<MapViewProps> = ({
       }
     };
 
-    // Compute visible shops immediately and on bounds_changed
     computeVisibleShops();
-    const boundsListener = googleMapRef.current.addListener(
-      "bounds_changed",
-      () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(computeVisibleShops, 200);
-      }
-    );
+    const onMove = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(computeVisibleShops, 200);
+    };
+
+    mapInstanceRef.current.on("moveend", onMove);
 
     return () => {
       clearTimeout(debounceTimer);
-      if (boundsListener) {
-        (window as any).google.maps.event.removeListener(boundsListener);
-      }
+      mapInstanceRef.current?.off("moveend", onMove);
     };
   }, [mapReady, shops, onVisibleShopsChange]);
 
@@ -300,14 +287,11 @@ const MapView: React.FC<MapViewProps> = ({
         </div>
       )}
 
-      {!((window as any).google && (window as any).google.maps) && (
+      {isClient && !mapInstanceRef.current && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="text-center px-4">
             <p className="text-gray-600 text-sm font-medium">
-              Google Maps API not loaded
-            </p>
-            <p className="text-gray-500 text-xs mt-2">
-              Add your API key to .env.local
+              Map not initialized
             </p>
           </div>
         </div>

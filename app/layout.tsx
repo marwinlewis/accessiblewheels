@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Google_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const geistSans = Google_Sans({
+  variable: "--font-google-sans",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Adapted Vehicle",
-  description: "Find car modification shops and customize your vehicle",
+  title: "Adapted Vehicle Car Modifications in India | Cars for Handicapped",
+  description:
+    "Find ARAI licensed adapted vehicle car modification shops near you and customize your vehicle for enhanced accessibility and comfort.",
 };
 
 export default function RootLayout({
@@ -24,16 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-        {/* Google Maps API - Add your API key to .env.local as NEXT_PUBLIC_GOOGLE_MAPS_API_KEY */}
-        {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-          <script
-            src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
-            async
-          />
-        )}
-      </body>
+      <body className={`${geistSans.variable}`}>{children}</body>
     </html>
   );
 }

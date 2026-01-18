@@ -1,37 +1,26 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import SearchBar from "@/components/molecules/SearchBar";
 import ShopList from "@/components/organisms/ShopList";
-import MapView from "@/components/organisms/MapView";
+
 import ResultsLayout from "@/components/templates/ResultsLayout";
 import { type Shop } from "@/components/molecules/ShopCard";
-import DUMMY_SHOPS_JSON from "@/data/dummy-shops-india.json";
+import { useIsClient } from "@/hooks/useEnvironment";
 
-// Use the JSON file with Indian city dummy shops. In case TypeScript
-// doesn't infer the type for JSON imports, cast to `Shop[]`.
-const DUMMY_SHOPS: Shop[] = DUMMY_SHOPS_JSON as unknown as Shop[];
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(
+  () => import("@/components/organisms/MapView").then((mod) => mod.default),
+  { ssr: false },
+);
 
 interface SearchLocation {
   lat: number;
   lng: number;
   address: string;
+  addressType: "city" | "state" | "country";
 }
-
-// Map of Indian city names to approximate coordinates
-const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
-  mumbai: { lat: 19.0761, lng: 72.8775 },
-  delhi: { lat: 28.6139, lng: 77.209 },
-  bangalore: { lat: 12.9716, lng: 77.5946 },
-  bengaluru: { lat: 12.9716, lng: 77.5946 },
-  chennai: { lat: 13.0827, lng: 80.2707 },
-  kolkata: { lat: 22.5726, lng: 88.3639 },
-  hyderabad: { lat: 17.3648, lng: 78.4747 },
-  pune: { lat: 18.5204, lng: 73.8567 },
-  ahmedabad: { lat: 23.0225, lng: 72.5714 },
-  jaipur: { lat: 26.9124, lng: 75.7873 },
-  lucknow: { lat: 26.8467, lng: 80.9462 },
-};
 
 /**
  * Calculate distance between two coordinates using Haversine formula (in km)
@@ -40,7 +29,7 @@ const calculateDistance = (
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number => {
   const R = 6371; // Earth's radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -55,15 +44,23 @@ const calculateDistance = (
   return R * c;
 };
 
-const CarModifiersPage: React.FC = () => {
+interface CarModifiersPageProps {
+  page: {
+    title: string;
+    description: string;
+  };
+  shops: Shop[];
+}
+
+const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops, page }) => {
   const [searchValue, setSearchValue] = useState("");
-  const [shops, setShops] = useState<Shop[]>(DUMMY_SHOPS);
   const [activeShopId, setActiveShopId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [searchLocation, setSearchLocation] = useState<SearchLocation>({
     lat: 20.5937,
     lng: 78.9629,
     address: "India",
+    addressType: "country",
   });
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -71,6 +68,8 @@ const CarModifiersPage: React.FC = () => {
   } | null>(null);
   const [visibleShops, setVisibleShops] = useState<Shop[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [geolocationDenied, setGeolocationDenied] = useState(false);
+  const isClient = useIsClient();
 
   /**
    * Handle city search with actual coordinates
@@ -83,28 +82,16 @@ const CarModifiersPage: React.FC = () => {
 
     setIsLoading(true);
     setError(null);
+    setGeolocationDenied(false); // User is searching, so allow distance calculation
 
     try {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 400));
 
-      const cityKey = searchValue.toLowerCase().trim();
-      const coords = CITY_COORDS[cityKey];
-
-      if (coords) {
-        setSearchLocation({
-          lat: coords.lat,
-          lng: coords.lng,
-          address: searchValue,
-        });
-        setActiveShopId(undefined);
-        return;
-      }
-
       // If not in the static map, call server-side geocode endpoint (biased to India)
       try {
         const resp = await fetch(
-          `/api/geocode?q=${encodeURIComponent(searchValue)}`
+          `/api/geocode?q=${encodeURIComponent(searchValue)}`,
         );
         if (resp.ok) {
           const json = await resp.json();
@@ -113,6 +100,7 @@ const CarModifiersPage: React.FC = () => {
               lat: json.location.lat,
               lng: json.location.lng,
               address: json.formatted_address || searchValue,
+              addressType: json.addressType || "city",
             });
             setActiveShopId(undefined);
             return;
@@ -125,7 +113,7 @@ const CarModifiersPage: React.FC = () => {
       }
 
       setError(
-        `Could not find location "${searchValue}". Try a different place in India.`
+        `Could not find location "${searchValue}". Try a different place in India.`,
       );
     } catch (err) {
       setError("Failed to search for shops. Please try again.");
@@ -139,14 +127,9 @@ const CarModifiersPage: React.FC = () => {
    * Handle shop card click - center map on selected shop
    */
   const handleShopClick = useCallback((shop: Shop) => {
-    setActiveShopId(shop.id);
+    console.log({ shop });
+    setActiveShopId(shop.documentId);
     // Map will automatically center due to useEffect in MapView
-  }, []);
-
-  // Load initial shops on component mount
-  useEffect(() => {
-    // Simulate initial data load
-    setShops(DUMMY_SHOPS);
   }, []);
 
   /**
@@ -156,6 +139,7 @@ const CarModifiersPage: React.FC = () => {
     const searchedCity = searchLocation.address.toLowerCase().trim();
     const searchedCityKey =
       searchedCity === "your location" ? "" : searchedCity.split(",")[0].trim();
+    const isInitialSearch = searchLocation.address === "India";
 
     // Separate shops into two groups with calculated distances
     const shopsFromSearchCity: Shop[] = [];
@@ -167,15 +151,24 @@ const CarModifiersPage: React.FC = () => {
       lng: searchLocation.lng,
     };
 
+    // Only calculate distances if:
+    // 1. User allowed geolocation (userLocation is set), OR
+    // 2. User has explicitly searched for a location (searchLocation is not default "India")
+    const shouldCalculateDistance = !geolocationDenied || !isInitialSearch;
+
     shops.forEach((shop) => {
-      const distance = calculateDistance(
-        origin.lat,
-        origin.lng,
-        shop.lat,
-        shop.lng
-      );
       const enrichedShop = { ...shop } as Shop;
-      enrichedShop.distance = distance;
+
+      if (shouldCalculateDistance) {
+        const distance = calculateDistance(
+          origin.lat,
+          origin.lng,
+          shop.lat,
+          shop.lng,
+        );
+        enrichedShop.distance = distance;
+      }
+      // If geolocation denied and no search, don't set distance (leave as undefined)
 
       // Check if shop is from the searched city
       const shopCity = shop.address.toLowerCase();
@@ -198,7 +191,7 @@ const CarModifiersPage: React.FC = () => {
 
     // Combine: searched city shops first, then all others
     return [...shopsFromSearchCity, ...otherShops];
-  }, [shops, searchLocation, userLocation]);
+  }, [shops, searchLocation, userLocation, geolocationDenied]);
 
   // Show visible shops when zoomed in, otherwise show sorted shops
   const shopsForList = visibleShops !== null ? visibleShops : sortedShops;
@@ -207,14 +200,10 @@ const CarModifiersPage: React.FC = () => {
     <div className="flex flex-col w-full h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
           <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Car Modifiers Locator
-            </h1>
-            <p className="text-gray-600 text-sm mt-1">
-              Find the best car modification shops near you
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">{page.title}</h1>
+            <p className="text-gray-600 text-sm mt-1">{page.description}</p>
           </div>
 
           {/* Search Bar */}
@@ -258,33 +247,44 @@ const CarModifiersPage: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
-        <div className="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <ResultsLayout
-            mainContent={
-              <MapView
-                shops={sortedShops}
-                activeShopId={activeShopId}
-                centerLat={searchLocation.lat}
-                centerLng={searchLocation.lng}
-                onMarkerClick={handleShopClick}
-                onVisibleShopsChange={setVisibleShops}
-                onUserLocation={(lat, lng) => {
-                  setUserLocation({ lat, lng });
-                  setSearchLocation({ lat, lng, address: "Your location" });
-                }}
-                onUserLocationError={(msg) => setError(msg)}
-                isLoading={isLoading}
-              />
-            }
-            sidebar={
-              <ShopList
-                shops={shopsForList}
-                onShopClick={handleShopClick}
-                activeShopId={activeShopId}
-                isLoading={isLoading}
-              />
-            }
-          />
+        <div className="h-full max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
+          {isClient && (
+            <ResultsLayout
+              mainContent={
+                <MapView
+                  shops={sortedShops}
+                  activeShopId={activeShopId}
+                  centerLat={searchLocation.lat}
+                  centerLng={searchLocation.lng}
+                  addressType={searchLocation.addressType}
+                  onMarkerClick={handleShopClick}
+                  onVisibleShopsChange={setVisibleShops}
+                  onUserLocation={(lat, lng) => {
+                    setUserLocation({ lat, lng });
+                    setSearchLocation({
+                      lat,
+                      lng,
+                      address: "Your location",
+                      addressType: "city",
+                    });
+                  }}
+                  onUserLocationError={(msg) => {
+                    setError(msg);
+                    setGeolocationDenied(true);
+                  }}
+                  isLoading={isLoading}
+                />
+              }
+              sidebar={
+                <ShopList
+                  shops={shopsForList}
+                  onShopClick={handleShopClick}
+                  activeShopId={activeShopId}
+                  isLoading={isLoading}
+                />
+              }
+            />
+          )}
         </div>
       </main>
 

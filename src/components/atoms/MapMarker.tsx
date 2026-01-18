@@ -29,7 +29,6 @@ const MapMarker: React.FC<MapMarkerProps> = ({
         isActive ? "scale-125" : "scale-100 hover:scale-110"
       } ${className}`}
     >
-      {/* SVG Marker Icon */}
       <div
         className={`relative w-8 h-8 ${
           isActive ? "drop-shadow-lg" : "drop-shadow"
@@ -46,7 +45,6 @@ const MapMarker: React.FC<MapMarkerProps> = ({
           <path d="M12 2C6.48 2 2 6.48 2 12c0 7 10 13 10 13s10-6 10-13c0-5.52-4.48-10-10-10zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
         </svg>
 
-        {/* Label Badge */}
         {label && (
           <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap bg-white border border-gray-300 rounded px-2 py-1 text-xs font-semibold text-gray-800 shadow-md">
             {label}

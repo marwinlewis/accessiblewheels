@@ -20,7 +20,7 @@ const ShopList: React.FC<ShopListProps> = ({
 }) => {
   return (
     <div
-      className={`flex flex-col h-full bg-gray-50 rounded-lg overflow-hidden ${className}`}
+      className={`flex flex-col h-full max-h-screen md:max-h-none bg-gray-50 rounded-lg overflow-hidden ${className}`}
     >
       {/* Header */}
       <div className="bg-white px-4 py-4 border-b border-gray-200 sticky top-0 z-10">
@@ -32,7 +32,7 @@ const ShopList: React.FC<ShopListProps> = ({
       </div>
 
       {/* Scrollable List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto max-h-screen">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center py-8">

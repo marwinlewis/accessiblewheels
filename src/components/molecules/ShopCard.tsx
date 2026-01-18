@@ -1,8 +1,9 @@
 import React from "react";
 import Badge from "../atoms/Badge";
+import Link from "next/link";
 
 interface Shop {
-  id: string;
+  documentId: string;
   name: string;
   rating: number;
   reviews: number;
@@ -11,6 +12,16 @@ interface Shop {
   imageUrl: string;
   lat: number;
   lng: number;
+  images: Array<{
+    url: string;
+    formats?: {
+      large?: { url: string };
+      medium?: { url: string };
+      small?: { url: string };
+      thumbnail?: { url: string };
+    };
+  }>;
+  googleMapUrl: string;
 }
 
 interface ShopCardProps {
@@ -36,7 +47,9 @@ const ShopCard: React.FC<ShopCardProps> = ({
       {/* Image Container */}
       <div className="relative h-40 overflow-hidden bg-gray-200">
         <img
-          src={shop.imageUrl}
+          src={`${process.env.NEXT_PUBLIC_API_ORIGIN}${
+            shop?.images?.[0]?.formats?.large?.url || shop?.images?.[0]?.url
+          }`}
           alt={shop.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -70,9 +83,11 @@ const ShopCard: React.FC<ShopCardProps> = ({
           ) : (
             <span className="text-sm text-gray-400">Distance unknown</span>
           )}
-          <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded font-medium">
-            View Details
-          </span>
+          <Link href={shop.googleMapUrl} target="_blank">
+            <span className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded font-medium">
+              View on Google Maps
+            </span>
+          </Link>
         </div>
       </div>
     </div>

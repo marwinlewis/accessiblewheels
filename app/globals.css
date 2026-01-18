@@ -40,3 +40,12 @@ a {
     color-scheme: dark;
   }
 }
+
+.leaflet-pane {
+  z-index: 0 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 0 !important;
+}

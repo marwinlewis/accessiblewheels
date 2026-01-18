@@ -9,6 +9,7 @@ interface SearchBarProps {
   placeholder?: string;
   isLoading?: boolean;
   disabled?: boolean;
+  onSuggestionSelect?: (suggestion: string) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({

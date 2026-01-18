@@ -183,11 +183,11 @@ declare global {
       maps: {
         Map: new (
           element: HTMLElement,
-          options: google.maps.MapOptions
+          options: google.maps.MapOptions,
         ) => google.maps.Map;
         Marker: new (options: google.maps.MarkerOptions) => google.maps.Marker;
         InfoWindow: new (
-          options: google.maps.InfoWindowOptions
+          options: google.maps.InfoWindowOptions,
         ) => google.maps.InfoWindow;
         LatLng: new (lat: number, lng: number) => google.maps.LatLng;
         LatLngBounds: new () => google.maps.LatLngBounds;
@@ -204,7 +204,7 @@ declare global {
         };
         places: {
           PlacesService: new (
-            element: HTMLElement | google.maps.Map
+            element: HTMLElement | google.maps.Map,
           ) => google.maps.places.PlacesService;
           PlacesServiceStatus: {
             OK: string;
@@ -216,7 +216,7 @@ declare global {
           };
         };
         geocoder: {
-          Geocoder: new () => google.maps.Geocoder;
+          Geocoder: new () => google.maps.geocoder.Geocoder;
         };
       };
     };
@@ -309,11 +309,11 @@ declare namespace google.maps {
       constructor(element: HTMLElement | Map);
       nearbySearch(
         request: PlacesServiceRequest,
-        callback: (results: PlaceResult[], status: string) => void
+        callback: (results: PlaceResult[], status: string) => void,
       ): void;
       getDetails(
         request: PlaceDetailsRequest,
-        callback: (place: PlaceResult, status: string) => void
+        callback: (place: PlaceResult, status: string) => void,
       ): void;
     }
 
@@ -335,7 +335,7 @@ declare namespace google.maps {
     class Geocoder {
       geocode(
         request: GeocoderRequest,
-        callback: (results: GeocodeResult[], status: string) => void
+        callback: (results: GeocodeResult[], status: string) => void,
       ): void;
     }
 

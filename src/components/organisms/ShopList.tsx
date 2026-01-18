@@ -65,10 +65,10 @@ const ShopList: React.FC<ShopListProps> = ({
           <div className="grid grid-cols-1 gap-3 p-3">
             {shops.map((shop) => (
               <ShopCard
-                key={shop.id}
+                key={shop.documentId}
                 shop={shop}
                 onClick={onShopClick}
-                isActive={activeShopId === shop.id}
+                isActive={activeShopId === shop.documentId}
               />
             ))}
           </div>

@@ -21,10 +21,10 @@ const ResultsLayout: React.FC<ResultsLayoutProps> = ({
       className={`flex flex-col lg:flex-row gap-4 h-full w-full ${className}`}
     >
       {/* Main Content (Map) - Shown first on desktop, but map takes priority */}
-      <div className="flex-1 min-h-70 lg:min-h-full">{mainContent}</div>
+      <div className="flex-1 min-h-80 lg:min-h-full">{mainContent}</div>
 
       {/* Sidebar (Shop List) - Responsive width */}
-      <div className="w-full lg:w-96 flex flex-col overflow-y-auto">
+      <div className="w-full lg:w-80 flex flex-col overflow-y-auto">
         {sidebar}
       </div>
     </div>

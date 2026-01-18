@@ -272,7 +272,7 @@ const MapView: React.FC<MapViewProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full bg-gray-200 rounded-lg overflow-hidden ${className}`}
+      className={`relative w-full h-80 sm:h-full bg-gray-200 rounded-lg overflow-hidden ${className}`}
     >
       <div ref={mapRef} className="w-full h-full" />
 

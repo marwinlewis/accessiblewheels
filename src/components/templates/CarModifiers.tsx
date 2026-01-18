@@ -197,13 +197,17 @@ const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops, page }) => {
   const shopsForList = visibleShops !== null ? visibleShops : sortedShops;
 
   return (
-    <div className="flex flex-col w-full h-screen bg-gray-100">
+    <div className="flex flex-col w-full sm:h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
-          <div className="mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">{page.title}</h1>
-            <p className="text-gray-600 text-sm mt-1">{page.description}</p>
+          <div className="mb-4 text-center sm:text-left">
+            <h1 className="text-sm sm:text-lg font-bold text-gray-900">
+              {page.title}
+            </h1>
+            <p className="text-xs sm:text-lg text-gray-600 mt-1">
+              {page.description}
+            </p>
           </div>
 
           {/* Search Bar */}
@@ -246,7 +250,7 @@ const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops, page }) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 sm:overflow-hidden">
         <div className="h-full max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
           {isClient && (
             <ResultsLayout

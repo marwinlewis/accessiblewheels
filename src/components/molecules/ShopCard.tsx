@@ -47,7 +47,7 @@ const ShopCard: React.FC<ShopCardProps> = ({
       {/* Image Container */}
       <div className="relative h-40 overflow-hidden bg-gray-200">
         <img
-          src={`${process.env.NEXT_PUBLIC_API_ORIGIN}${
+          src={`${
             shop?.images?.[0]?.formats?.large?.url || shop?.images?.[0]?.url
           }`}
           alt={shop.name}

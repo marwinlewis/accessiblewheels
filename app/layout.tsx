@@ -1,26 +1,40 @@
 import type { Metadata } from "next";
 import { Google_Sans } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
+import { getGlobals } from "@/utils/server/strapi";
 
 const geistSans = Google_Sans({
   variable: "--font-google-sans",
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Adapted Vehicle Car Modifications in India | Cars for Handicapped",
-  description:
-    "Find ARAI licensed adapted vehicle car modification shops near you and customize your vehicle for enhanced accessibility and comfort.",
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const res = await getGlobals();
+  const globalData = await res.json();
+  const { GTM_ID } = globalData?.globals || "";
   return (
     <html lang="en">
       <body className={`${geistSans.variable}`}>{children}</body>
+      <Script
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${GTM_ID}`}
+      />
+      <Script
+        id="gtm"
+        strategy="afterInteractive"
+        defer
+        dangerouslySetInnerHTML={{
+          __html: `window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GTM_ID}');`,
+        }}
+      />
     </html>
   );
 }

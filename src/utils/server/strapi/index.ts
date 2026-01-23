@@ -60,4 +60,30 @@ const getPage = async (slug: string) => {
   );
 };
 
-export { getShops, getPage };
+const getGlobals = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/global?populate=*`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${process.env.API_AUTH_TOKEN}`,
+      },
+    },
+  );
+
+  const data = await response.json();
+  if (response.ok) {
+    return NextResponse.json({
+      globals: data.data,
+      status: response.status,
+      statusText: response.statusText,
+    });
+  }
+  return NextResponse.json(
+    { error: "Failed to fetch global data" },
+    { status: response.status },
+  );
+};
+
+export { getShops, getPage, getGlobals };

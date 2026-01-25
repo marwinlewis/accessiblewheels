@@ -62,7 +62,7 @@ const getPage = async (slug: string) => {
 
 const getPages = async () => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/pages?populate=*`,
+    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/pages?populate=*&sort=slug`,
     {
       method: "GET",
       headers: {

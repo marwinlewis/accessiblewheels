@@ -33,6 +33,13 @@ export default function BlockRendererClient({
             return <ul className="list-disc pl-5 mb-4">{children}</ul>;
           }
         },
+        link: ({ url, children }) => {
+          return (
+            <a href={url} className="text-blue-600 underline">
+              {children}
+            </a>
+          );
+        },
       }}
     />
   );

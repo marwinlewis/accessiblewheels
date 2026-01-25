@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, ReactNode } from "react";
+import React, { useState, ReactNode, useEffect } from "react";
 import { type BlocksContent } from "@strapi/blocks-react-renderer";
 import BlockRendererClient from "./BlockRendererComponent";
 
@@ -17,20 +17,49 @@ interface TabsProps {
   tabs: Tab[];
 }
 
+const tabChangeEvent = new CustomEvent("tabChange");
+
 const Tabs: React.FC<TabsProps> = ({ tabs }: TabsProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const currentTab = tabs[activeTab] as Tab;
 
+  const handleTabClick = (index: number) => {
+    if (activeTab === index) return;
+    setActiveTab(index);
+    document.dispatchEvent(tabChangeEvent);
+  };
+
+  const onPreviousClick = () => {
+    setActiveTab(Math.max(0, activeTab - 1));
+    document.dispatchEvent(tabChangeEvent);
+  };
+
+  const onNextClick = () => {
+    setActiveTab(Math.min(tabs.length - 1, activeTab + 1));
+    document.dispatchEvent(tabChangeEvent);
+  };
+
+  useEffect(() => {
+    const onTabChange = () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    document.addEventListener("tabChange", onTabChange);
+
+    return () => {
+      document.removeEventListener("tabChange", onTabChange);
+    };
+  }, []);
+
   return (
-    <div className="w-full">
+    <div className="w-full max-w-7xl m-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Tab Headers */}
-        <div className="flex border-b border-gray-200 bg-gray-50">
+        <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-scroll sm:overflow-hidden">
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(index)}
-              className={`flex-1 py-4 px-2 text-center font-semibold transition-all duration-200 ${
+              onClick={() => handleTabClick(index)}
+              className={`flex-1 py-4 px-2 text-center font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === index
                   ? "bg-blue-600 text-white border-b-4 border-blue-700"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100"
@@ -104,9 +133,9 @@ const Tabs: React.FC<TabsProps> = ({ tabs }: TabsProps) => {
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
         <button
-          onClick={() => setActiveTab(Math.max(0, activeTab - 1))}
+          onClick={onPreviousClick}
           disabled={activeTab === 0}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+          className={`px-6 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
             activeTab === 0
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
               : "bg-gray-600 text-white hover:bg-gray-700"
@@ -115,15 +144,15 @@ const Tabs: React.FC<TabsProps> = ({ tabs }: TabsProps) => {
           Previous
         </button>
         <button
-          onClick={() => setActiveTab(Math.min(tabs.length - 1, activeTab + 1))}
+          onClick={onNextClick}
           disabled={activeTab === tabs.length - 1}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+          className={`px-6 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
             activeTab === tabs.length - 1
               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          Next
+          {activeTab + 1 === tabs.length ? "Finish" : "Next"}
         </button>
       </div>
     </div>

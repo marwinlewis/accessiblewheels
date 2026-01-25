@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@strapi/blocks-react-renderer": "^1.0.2",
     "@tailwindcss/postcss": "^4.1.18",
     "leaflet": "^1.9.4",
     "next": "16.1.1",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "husky": "^9.1.7",
     "typescript": "^5"
   }
 }

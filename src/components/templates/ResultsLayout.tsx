@@ -1,4 +1,5 @@
 import React, { ReactNode } from "react";
+import Tabs, { Tab } from "../molecules/Tabs";
 
 interface ResultsLayoutProps {
   sidebar: ReactNode;

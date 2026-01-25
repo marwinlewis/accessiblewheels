@@ -8,6 +8,7 @@ export { default as MapMarker } from "./atoms/MapMarker";
 export { default as SearchBar } from "./molecules/SearchBar";
 export { default as ShopCard } from "./molecules/ShopCard";
 export { default as LocationInfo } from "./molecules/LocationInfo";
+export { default as Tabs } from "./molecules/Tabs";
 
 // Organisms
 export { default as ShopList } from "./organisms/ShopList";

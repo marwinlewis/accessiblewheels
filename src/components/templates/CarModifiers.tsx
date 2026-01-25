@@ -45,14 +45,10 @@ const calculateDistance = (
 };
 
 interface CarModifiersPageProps {
-  page: {
-    title: string;
-    description: string;
-  };
   shops: Shop[];
 }
 
-const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops, page }) => {
+const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => {
   const [searchValue, setSearchValue] = useState("");
   const [activeShopId, setActiveShopId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -201,15 +197,6 @@ const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops, page }) => {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
-          <div className="mb-4 text-center sm:text-left">
-            <h1 className="text-sm sm:text-lg font-bold text-gray-900">
-              {page.title}
-            </h1>
-            <p className="text-xs sm:text-lg text-gray-600 mt-1">
-              {page.description}
-            </p>
-          </div>
-
           {/* Search Bar */}
           <SearchBar
             searchValue={searchValue}

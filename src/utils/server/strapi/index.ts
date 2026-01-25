@@ -36,7 +36,7 @@ const getShops = async () => {
 
 const getPage = async (slug: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/page?filters[slug][$eq]=${slug}&populate=*`,
+    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/pages?filters[slug][$eq]=${slug}&populate=*`,
     {
       method: "GET",
       headers: {
@@ -56,6 +56,32 @@ const getPage = async (slug: string) => {
   }
   return NextResponse.json(
     { error: "Failed to fetch shops data" },
+    { status: response.status },
+  );
+};
+
+const getPages = async () => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/pages?populate=*`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${process.env.API_AUTH_TOKEN}`,
+      },
+    },
+  );
+
+  const data = await response.json();
+  if (response.ok) {
+    return NextResponse.json({
+      pages: data.data,
+      status: response.status,
+      statusText: response.statusText,
+    });
+  }
+  return NextResponse.json(
+    { error: "Failed to fetch global data" },
     { status: response.status },
   );
 };
@@ -86,4 +112,4 @@ const getGlobals = async () => {
   );
 };
 
-export { getShops, getPage, getGlobals };
+export { getShops, getPage, getPages, getGlobals };

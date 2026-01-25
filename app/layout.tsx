@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Google_Sans } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
@@ -16,9 +15,12 @@ export default async function RootLayout({
 }>) {
   const res = await getGlobals();
   const globalData = await res.json();
-  const { GTM_ID } = globalData?.globals || "";
+  const { GTM_ID, webmasterTag } = globalData?.globals || "";
   return (
     <html lang="en">
+      <head>
+        <meta name="google-site-verification" content={webmasterTag} />
+      </head>
       <body className={`${geistSans.variable}`}>{children}</body>
       <Script
         async

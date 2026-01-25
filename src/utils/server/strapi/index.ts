@@ -11,6 +11,7 @@ const getShops = async () => {
           "Content-Type": "application/json",
           authorization: `Bearer ${API_AUTH_TOKEN}`,
         },
+        next: { revalidate: 86400 },
       },
     );
     const data = await response.json();
@@ -43,6 +44,7 @@ const getPage = async (slug: string) => {
         "Content-Type": "application/json",
         authorization: `Bearer ${process.env.API_AUTH_TOKEN}`,
       },
+      next: { revalidate: 86400 },
     },
   );
 
@@ -69,6 +71,7 @@ const getPages = async () => {
         "Content-Type": "application/json",
         authorization: `Bearer ${process.env.API_AUTH_TOKEN}`,
       },
+      next: { revalidate: 86400 },
     },
   );
 
@@ -95,6 +98,7 @@ const getGlobals = async () => {
         "Content-Type": "application/json",
         authorization: `Bearer ${process.env.API_AUTH_TOKEN}`,
       },
+      next: { revalidate: 86400 },
     },
   );
 

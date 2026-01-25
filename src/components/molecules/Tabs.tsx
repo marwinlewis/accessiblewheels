@@ -15,12 +15,13 @@ export interface Tab {
 
 interface TabsProps {
   tabs: Tab[];
+  openedTab?: number;
 }
 
 const tabChangeEvent = new CustomEvent("tabChange");
 
-const Tabs: React.FC<TabsProps> = ({ tabs }: TabsProps) => {
-  const [activeTab, setActiveTab] = useState(0);
+const Tabs: React.FC<TabsProps> = ({ tabs, openedTab }: TabsProps) => {
+  const [activeTab, setActiveTab] = useState(openedTab || 0);
   const currentTab = tabs[activeTab] as Tab;
 
   const handleTabClick = (index: number) => {
@@ -49,6 +50,10 @@ const Tabs: React.FC<TabsProps> = ({ tabs }: TabsProps) => {
       document.removeEventListener("tabChange", onTabChange);
     };
   }, []);
+
+  useEffect(() => {
+    history.pushState({}, "", `step-${activeTab + 1}`);
+  }, [activeTab]);
 
   return (
     <div className="w-full max-w-7xl m-auto">

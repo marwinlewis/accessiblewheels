@@ -53,20 +53,32 @@ const Tabs: React.FC<TabsProps> = ({ tabs, openedTab }: TabsProps) => {
 
   useEffect(() => {
     history.pushState({}, "", `step-${activeTab + 1}`);
+
+    if (activeTab >= 0) {
+      const activeTabButton = document.querySelector("button.active");
+
+      if (activeTabButton) {
+        activeTabButton.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
   }, [activeTab]);
 
   return (
     <div className="w-full max-w-7xl m-auto">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Tab Headers */}
-        <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-scroll sm:overflow-hidden">
+        <div className="flex snap-center border-b border-gray-200 bg-gray-50 overflow-x-scroll snap-x snap-mandatory no-scrollbar scroll-smooth sm:overflow-hidden">
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
               onClick={() => handleTabClick(index)}
               className={`flex-1 py-4 px-2 text-center font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === index
-                  ? "bg-blue-600 text-white border-b-4 border-blue-700"
+                  ? "bg-blue-600 text-white border-b-4 border-blue-700 active"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100"
               }`}
             >
@@ -77,7 +89,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, openedTab }: TabsProps) => {
         </div>
 
         {/* Tab Content */}
-        <div className="p-8 bg-white">
+        <div className="p-4 pb-8 sm:p-8 bg-white">
           {currentTab.content && (
             <>
               <div className="mb-6">
@@ -136,7 +148,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, openedTab }: TabsProps) => {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between mt-6 pb-8">
+      <div className="flex justify-between p-4 pb-8">
         <button
           onClick={onPreviousClick}
           disabled={activeTab === 0}

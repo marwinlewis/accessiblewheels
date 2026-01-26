@@ -136,7 +136,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, openedTab }: TabsProps) => {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-6 pb-8">
         <button
           onClick={onPreviousClick}
           disabled={activeTab === 0}

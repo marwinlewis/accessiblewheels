@@ -1,6 +1,6 @@
 import Tabs, { Tab } from "@/components/molecules/Tabs";
 import CarModifiersPage from "@/components/templates/CarModifiers";
-import { getGlobals, getPage, getPages, getShops } from "@/utils/server/strapi";
+import { getGlobals, getPages, getShops } from "@/utils/server/strapi";
 import { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -8,8 +8,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const globalData = await res.json();
 
   return {
-    title: globalData?.globals?.seoTitle || "",
-    description: globalData?.globals?.seoDescription || "",
+    title: globalData?.globals?.seo?.title || "",
+    description: globalData?.globals?.seo?.description || "",
   };
 }
 

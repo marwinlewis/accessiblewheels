@@ -26,8 +26,6 @@ export interface FooterProps {
 const Footer = ({ about, quickLinks, contact }: FooterProps) => {
   const currentYear = new Date().getFullYear();
 
-  console.log({ quickLinks });
-
   return (
     <footer className="bg-gray-800 text-gray-200 mt-12">
       <div className="max-w-7xl mx-auto px-4 py-12">

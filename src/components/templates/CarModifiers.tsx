@@ -123,7 +123,6 @@ const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => {
    * Handle shop card click - center map on selected shop
    */
   const handleShopClick = useCallback((shop: Shop) => {
-    console.log({ shop });
     setActiveShopId(shop.documentId);
     // Map will automatically center due to useEffect in MapView
   }, []);

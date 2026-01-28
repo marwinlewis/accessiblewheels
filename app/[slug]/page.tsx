@@ -1,5 +1,6 @@
 import Tabs, { Tab } from "@/components/molecules/Tabs";
 import CarModifiersPage from "@/components/templates/CarModifiers";
+import Main from "@/components/templates/Main";
 import { getGlobals, getPage, getPages, getShops } from "@/utils/server/strapi";
 import { Metadata } from "next";
 
@@ -29,6 +30,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const resShops = await getShops();
   const shopsData = await resShops.json();
 
+  const resGlobal = await getGlobals();
+  const globalData = await resGlobal.json();
+
   const tabs: Tab[] = [];
   let key = 1;
 
@@ -45,5 +49,11 @@ export default async function Page({ params }: { params: { slug: string } }) {
     });
   }
 
-  return <Tabs tabs={tabs} openedTab={activeTab} />;
+  return (
+    <Main
+      title={globalData?.globals?.title}
+      tabs={tabs}
+      openedTab={activeTab}
+    />
+  );
 }

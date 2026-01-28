@@ -13,6 +13,7 @@ export { default as Tabs } from "./molecules/Tabs";
 // Organisms
 export { default as ShopList } from "./organisms/ShopList";
 export { default as MapView } from "./organisms/MapView";
+export { default as Footer } from "./organisms/Footer";
 
 // Templates
 export { default as ResultsLayout } from "./templates/ResultsLayout";

@@ -91,7 +91,7 @@ const getPages = async () => {
 
 const getGlobals = async () => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/global?populate=*`,
+    `${process.env.NEXT_PUBLIC_API_ORIGIN}/api/global?populate[footer][populate]=*`,
     {
       method: "GET",
       headers: {

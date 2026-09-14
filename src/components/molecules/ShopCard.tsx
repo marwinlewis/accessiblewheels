@@ -27,33 +27,35 @@ interface ShopCardProps {
   className?: string;
 }
 
-const FALLBACK_API_IMAGE = "/api/media/file/car_ferro_a2a4e82d9d-2.jpg";
+const FALLBACK_API_IMAGE = "/media/car_ferro_a2a4e82d9d.jpg";
 
 function getShopImageUrl(images?: Array<any>): string {
   const firstImage = images?.[0];
   if (!firstImage) return FALLBACK_API_IMAGE;
 
   if (typeof firstImage === "string") {
-    if (firstImage.startsWith("http://") || firstImage.startsWith("https://") || firstImage.startsWith("/api/")) {
+    if (firstImage.startsWith("http://") || firstImage.startsWith("https://")) {
       return firstImage;
     }
     if (firstImage.startsWith("/media/")) {
-      return firstImage.replace(/^\/media\//, "/api/media/file/");
+      return firstImage;
     }
-    return `/api/media/file/${firstImage}`;
+    if (firstImage.startsWith("/api/media/file/")) {
+      return firstImage.replace(/^\/api\/media\/file\//, "/media/");
+    }
+    return `/media/${firstImage}`;
   }
 
   if (typeof firstImage === "object") {
-    // Prefer medium size for optimal card display
     const candidate =
+      firstImage.url ||
       firstImage.sizes?.medium?.url ||
       firstImage.sizes?.thumbnail?.url ||
-      firstImage.url ||
-      (firstImage.filename ? `/api/media/file/${firstImage.filename}` : "");
+      (firstImage.filename ? `/media/${firstImage.filename}` : "");
 
     if (candidate) {
-      if (candidate.startsWith("/media/")) {
-        return candidate.replace(/^\/media\//, "/api/media/file/");
+      if (candidate.startsWith("/api/media/file/")) {
+        return candidate.replace(/^\/api\/media\/file\//, "/media/");
       }
       return candidate;
     }

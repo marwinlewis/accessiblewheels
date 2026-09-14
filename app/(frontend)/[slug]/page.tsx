@@ -6,6 +6,13 @@ import Tabs, { Tab } from "@/components/molecules/Tabs";
 import CarModifiersPage from "@/components/templates/CarModifiers";
 import ConcessionCalculator from "@/components/organisms/ConcessionCalculator";
 
+export async function generateStaticParams() {
+  const pages = await getGuidePages();
+  return pages.map((page) => ({
+    slug: page.slug,
+  }));
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }

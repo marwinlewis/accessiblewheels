@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ siteTitle = "AdaptedVehicle.in" 
             </Link>
 
             <Link
-              href="/step-3"
+              href="/step-3#workshops"
               className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-md flex items-center gap-1.5"
             >
               <MapPin className="w-4 h-4" aria-hidden="true" />
@@ -58,16 +58,6 @@ export const Navbar: React.FC<NavbarProps> = ({ siteTitle = "AdaptedVehicle.in" 
               <BadgeIndianRupee className="w-4 h-4" aria-hidden="true" />
               <span>Tax Rules</span>
             </Link>
-
-            <div className="h-5 w-px bg-slate-200 mx-2" aria-hidden="true" />
-
-            <a href="/admin"
-              className="px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-300 rounded-md hover:bg-slate-100 flex items-center gap-1.5"
-              title="Content admin panel"
-            >
-              <Settings className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Admin</span>
-            </a>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -114,15 +104,6 @@ export const Navbar: React.FC<NavbarProps> = ({ siteTitle = "AdaptedVehicle.in" 
             <BadgeIndianRupee className="w-5 h-5" aria-hidden="true" />
             Tax Rules
           </Link>
-          <div className="pt-2 border-t border-slate-200">
-            <a href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold border border-slate-300 rounded-md hover:bg-slate-100"
-            >
-              <Settings className="w-4 h-4" aria-hidden="true" />
-              Admin
-            </a>
-          </div>
         </nav>
       )}
     </header>

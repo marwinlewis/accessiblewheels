@@ -133,14 +133,6 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
                   <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                 </a>
               </li>
-              <li className="pt-1">
-                <a href="/admin"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-100"
-                >
-                  <Settings className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>Content Admin</span>
-                </a>
-              </li>
             </ul>
           </div>
         </div>

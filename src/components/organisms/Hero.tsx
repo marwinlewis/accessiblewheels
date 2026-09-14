@@ -33,7 +33,7 @@ export const Hero: React.FC = () => {
             </Link>
 
             <Link
-              href="/step-3"
+              href="/step-3#workshops"
               className="px-5 py-3 rounded-md bg-white hover:bg-slate-100 text-slate-800 font-semibold text-sm border border-slate-300 flex items-center gap-2"
             >
               <MapPin className="w-4 h-4" aria-hidden="true" />

@@ -1,35 +1,35 @@
 import { Metadata } from "next";
-import { getSiteGlobals, getGuidePages, getShopsList } from "@/utils/data";
+import { getShopsList } from "@/utils/data";
+import { getServerLocale, getDictionary, getLocalizedGuidePages } from "@/i18n/server";
 import Hero from "@/components/organisms/Hero";
 import Tabs, { Tab } from "@/components/molecules/Tabs";
 import CarModifiersPage from "@/components/templates/CarModifiers";
 import ConcessionCalculator from "@/components/organisms/ConcessionCalculator";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const globalData = (await getSiteGlobals()) as any;
+  const locale = await getServerLocale();
+  const dict = getDictionary(locale);
 
   return {
-    title:
-      globalData?.seo?.title ||
-      "Adapted Vehicle & Driving Licence Guide for Disabled People in India",
-    description:
-      globalData?.seo?.description ||
-      "A plain-language, step-by-step guide for disabled people in India: get a UDID card, buy and register an adapted vehicle, find a modification workshop, and apply for a driving licence — with current GST and road tax rules.",
+    title: dict.seo.title,
+    description: dict.seo.description,
     openGraph: {
-      title: globalData?.seo?.title || "Adapted Vehicle India",
-      description: globalData?.seo?.description || "",
+      title: dict.seo.title,
+      description: dict.seo.description,
       type: "website",
     },
   };
 }
 
 export default async function Page() {
+  const locale = await getServerLocale();
+
   const [pagesDocs, shopsDocs] = await Promise.all([
-    getGuidePages(),
+    getLocalizedGuidePages(locale),
     getShopsList(),
   ]);
 
-  const tabs: Tab[] = pagesDocs.map((page: any, index: number) => ({
+  const tabs: Tab[] = pagesDocs.map((page, index) => ({
     id: page.order || index + 1,
     label: page.label || `Step ${index + 1}`,
     slug: page.slug || `step-${index + 1}`,
@@ -44,7 +44,7 @@ export default async function Page() {
 
   return (
     <main className="w-full">
-      {/* Inspiring Hero Section with Metrics */}
+      {/* Hero Section with Metrics */}
       <Hero />
 
       {/* 4-Step Interactive Roadmap & Guide */}

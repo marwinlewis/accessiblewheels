@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getSiteGlobals, getGuidePages, getShopsList, getGuidePage } from "@/utils/data";
+import { getShopsList, getGuidePages } from "@/utils/data";
+import { getServerLocale, getDictionary, getLocalizedGuidePages, getLocalizedGuidePage } from "@/i18n/server";
 import Hero from "@/components/organisms/Hero";
 import Tabs, { Tab } from "@/components/molecules/Tabs";
 import CarModifiersPage from "@/components/templates/CarModifiers";
@@ -19,35 +19,38 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = (await getGuidePage(slug)) as any;
-  const globalData = (await getSiteGlobals()) as any;
+  const locale = await getServerLocale();
+  const page = await getLocalizedGuidePage(slug, locale);
+  const dict = getDictionary(locale);
 
   if (!page) {
     return {
-      title: "Step Guide | Adapted Vehicle India",
+      title: `Step Guide | ${dict.nav.brandTitle}`,
     };
   }
 
   return {
-    title: `${page.title} | ${globalData?.title || "Adapted Vehicle India"}`,
+    title: `${page.title} | ${dict.nav.brandTitle}`,
     description:
-      page.seo?.description ||
       page.description ||
-      "Complete step-by-step guide for Divyangjan vehicle adaptation and driving license in India.",
+      page.seo?.description ||
+      dict.seo.description,
   };
 }
 
 export default async function StepPage({ params }: PageProps) {
   const { slug } = await params;
+  const locale = await getServerLocale();
+
   const [pagesDocs, shopsDocs] = await Promise.all([
-    getGuidePages(),
+    getLocalizedGuidePages(locale),
     getShopsList(),
   ]);
 
-  const stepIndex = pagesDocs.findIndex((p: any) => p.slug === slug);
+  const stepIndex = pagesDocs.findIndex((p) => p.slug === slug);
   const activeTab = stepIndex >= 0 ? stepIndex : 0;
 
-  const tabs: Tab[] = pagesDocs.map((page: any, index: number) => ({
+  const tabs: Tab[] = pagesDocs.map((page, index) => ({
     id: page.order || index + 1,
     label: page.label || `Step ${index + 1}`,
     slug: page.slug || `step-${index + 1}`,

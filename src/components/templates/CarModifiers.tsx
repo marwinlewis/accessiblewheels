@@ -6,6 +6,7 @@ import { Search, Navigation, Filter, X } from "lucide-react";
 import { type Shop } from "@/components/molecules/ShopCard";
 import ShopList from "@/components/organisms/ShopList";
 import { useIsClient } from "@/hooks/useEnvironment";
+import { useLanguage } from "@/i18n/context";
 
 const MapView = dynamic(
   () => import("@/components/organisms/MapView").then((mod) => mod.default),
@@ -53,6 +54,7 @@ const CITIES = [
 ];
 
 export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => {
+  const { t } = useLanguage();
   const [searchValue, setSearchValue] = useState("");
   const [selectedCity, setSelectedCity] = useState("All Cities");
   const [activeShopId, setActiveShopId] = useState<string | undefined>();
@@ -113,7 +115,7 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
         }
       }
       setError(`Could not find location "${searchValue}". Try cities like Mumbai, Jaipur, Bangalore, etc.`);
-    } catch (err) {
+    } catch {
       setError("Failed to geocode location. Please try again.");
     } finally {
       setIsLoading(false);
@@ -137,7 +139,7 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
           setIsLoading(false);
         },
         () => {
-          setError("Location access denied. Please select a city manually.");
+          setError(t.workshops.locationDenied);
           setIsLoading(false);
         }
       );
@@ -179,14 +181,14 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
               <label htmlFor="workshop-search" className="sr-only">
-                Search by city
+                {t.workshops.searchPlaceholder}
               </label>
               <input
                 id="workshop-search"
                 type="text"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search by city (e.g. Mumbai, Chennai, Jaipur, Karnal)..."
+                placeholder={t.workshops.searchPlaceholder}
                 className="w-full pl-10 pr-4 py-2.5 rounded-md bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-700"
               />
               {searchValue && (
@@ -208,7 +210,7 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
               disabled={isLoading}
               className="px-5 py-2.5 rounded-md bg-blue-800 hover:bg-blue-900 text-white text-sm font-semibold flex items-center gap-1.5"
             >
-              <span>Search</span>
+              <span>{t.workshops.searchButton}</span>
             </button>
           </form>
 
@@ -218,7 +220,7 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
             className="px-4 py-2.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold flex items-center justify-center gap-2"
           >
             <Navigation className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Use my location</span>
+            <span>{t.workshops.useMyLocation}</span>
           </button>
         </div>
 
@@ -226,7 +228,7 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
         <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar">
           <span className="text-xs text-slate-500 font-medium flex items-center gap-1 mr-1 flex-shrink-0">
             <Filter className="w-3 h-3" aria-hidden="true" />
-            Cities:
+            {t.workshops.citiesLabel}
           </span>
           {CITIES.map((c) => (
             <button
@@ -238,7 +240,7 @@ export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => 
                   : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
               }`}
             >
-              {c.name}
+              {c.name === "All Cities" ? t.workshops.allCities : c.name}
             </button>
           ))}
         </div>

@@ -2,12 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { ExternalLink, Settings } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
 
 export interface FooterProps {
   about?: {
     title?: string;
-    content?: any;
     text?: string;
   };
   quickLinks?: {
@@ -28,6 +28,7 @@ export interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) => {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
 
   return (
     <footer className="w-full bg-slate-50 border-t border-slate-200 text-slate-700 mt-20">
@@ -36,48 +37,47 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
           {/* About */}
           <div className="md:col-span-5 space-y-3">
             <h2 className="text-base font-bold text-slate-900">
-              Adapted Vehicle India
+              {about?.title || t.footer.aboutTitle}
             </h2>
 
             <p className="text-sm text-slate-600 leading-relaxed max-w-md">
-              {about?.text ||
-                "An independent, plain-language guide to buying and registering an adapted vehicle and getting a driving licence in India as a person with disability — with links to the official government portals for every step."}
+              {about?.text || t.footer.aboutText}
             </p>
 
             <p className="text-xs text-slate-500 pt-1">
-              This site is not a government website. Always confirm current rules with the official portals listed below.
+              {t.footer.notGovNotice}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="md:col-span-3 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-900">
-              {quickLinks?.title || "Step-by-Step Guide"}
+              {quickLinks?.title || t.footer.stepGuideTitle}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/step-1" className="text-blue-800 hover:text-blue-900 hover:underline">
-                  Step 1: UDID Card &amp; Medical Assessment
+                  {t.footer.step1Link}
                 </Link>
               </li>
               <li>
                 <Link href="/step-2" className="text-blue-800 hover:text-blue-900 hover:underline">
-                  Step 2: Buying &amp; Registering the Vehicle
+                  {t.footer.step2Link}
                 </Link>
               </li>
               <li>
                 <Link href="/step-3" className="text-blue-800 hover:text-blue-900 hover:underline">
-                  Step 3: Workshops &amp; Learner&apos;s Licence
+                  {t.footer.step3Link}
                 </Link>
               </li>
               <li>
                 <Link href="/step-4" className="text-blue-800 hover:text-blue-900 hover:underline">
-                  Step 4: Practical Test &amp; Licence
+                  {t.footer.step4Link}
                 </Link>
               </li>
               <li>
                 <Link href="/#calculator" className="text-blue-800 hover:text-blue-900 hover:underline">
-                  GST &amp; Road Tax Rules
+                  {t.footer.taxRulesLink}
                 </Link>
               </li>
             </ul>
@@ -86,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
           {/* Government Portals & Contact */}
           <div className="md:col-span-4 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-900">
-              {contact?.title || "Official Portals"}
+              {contact?.title || t.footer.officialPortalsTitle}
             </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
@@ -96,7 +96,7 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
                 >
-                  <span>Swavlamban UDID Portal</span>
+                  <span>{t.footer.udidPortalLink}</span>
                   <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                 </a>
               </li>
@@ -107,7 +107,7 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
                 >
-                  <span>Parivahan Sarathi (Licence)</span>
+                  <span>{t.footer.parivahanLink}</span>
                   <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                 </a>
               </li>
@@ -118,7 +118,7 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
                 >
-                  <span>Ministry of Heavy Industries</span>
+                  <span>{t.footer.mhiLink}</span>
                   <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                 </a>
               </li>
@@ -129,7 +129,7 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
                 >
-                  <span>Maintainer: Marwin Lewis</span>
+                  <span>{t.footer.maintainerLink}</span>
                   <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                 </a>
               </li>
@@ -140,10 +140,7 @@ export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) =>
         {/* Disclaimer & Copyright */}
         <div className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-500">
           <p>
-            &copy; {currentYear} AdaptedVehicle.in. Information is based on the Central Motor Vehicles Rules,
-            GST Council notifications and Ministry of Heavy Industries circulars, and is provided for general
-            guidance only — it is not legal advice. Rules change; always verify with the official portals above
-            or your local RTO before relying on any figure here.
+            &copy; {currentYear} AdaptedVehicle.in. {t.footer.disclaimer}
           </p>
         </div>
       </div>

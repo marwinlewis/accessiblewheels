@@ -1,9 +1,10 @@
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
-import { getSiteGlobals } from "@/utils/data";
 import Navbar from "@/components/organisms/Navbar";
 import Footer from "@/components/organisms/Footer";
+import { getServerLocale, getDictionary, getLanguageDirection, getLocalizedSiteGlobals } from "@/i18n/server";
+import { LanguageProvider } from "@/i18n/context";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -22,28 +23,33 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const globalData = (await getSiteGlobals()) as any;
+  // SSR: Resolve language from cookie on server at request time
+  const locale = await getServerLocale();
+  const dict = getDictionary(locale);
+  const dir = getLanguageDirection(locale);
+  const globalData = await getLocalizedSiteGlobals(locale);
+
   const gtmId = globalData?.gtmId || "G-4JRLEMT93M";
   const webmasterTag = globalData?.webmasterTag || "e1pF3HWCsSrAHsjdrwQH0-Is2Dj23MsTNl2VHMoPs0U";
   const footer = globalData?.footer;
 
   const footerProps = {
     about: {
-      title: footer?.aboutTitle || "About Adapted Vehicle India",
-      text: footer?.aboutText || "",
+      title: footer?.aboutTitle || dict.footer.aboutTitle,
+      text: footer?.aboutText || dict.footer.aboutText,
     },
     quickLinks: {
-      title: "Navigation & Steps",
+      title: dict.footer.stepGuideTitle,
       links: footer?.quickLinks || [],
     },
     contact: {
-      title: "Government Portals & Contact",
+      title: dict.footer.officialPortalsTitle,
       links: footer?.contactLinks || [],
     },
   };
 
   return (
-    <html lang="en">
+    <html lang={locale} dir={dir}>
       <head>
         <meta name="google-site-verification" content={webmasterTag} />
         <meta name="theme-color" content="#ffffff" />
@@ -51,9 +57,11 @@ export default async function RootLayout({
       <body
         className={`${outfit.variable} ${inter.variable} min-h-screen flex flex-col bg-white text-slate-900 antialiased`}
       >
-        <Navbar siteTitle={globalData?.title} />
-        <div className="flex-1 w-full">{children}</div>
-        <Footer {...footerProps} />
+        <LanguageProvider initialLocale={locale} initialDictionary={dict}>
+          <Navbar siteTitle={dict.nav.brandTitle} />
+          <div className="flex-1 w-full">{children}</div>
+          <Footer {...footerProps} />
+        </LanguageProvider>
 
         {gtmId && (
           <>

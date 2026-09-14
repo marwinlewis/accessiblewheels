@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import ShopCard, { type Shop } from "../molecules/ShopCard";
+import { Wrench } from "lucide-react";
 
 interface ShopListProps {
   shops: Shop[];
@@ -10,75 +13,63 @@ interface ShopListProps {
   className?: string;
 }
 
-const ShopList: React.FC<ShopListProps> = ({
+export const ShopList: React.FC<ShopListProps> = ({
   shops,
   onShopClick,
   activeShopId,
   isLoading = false,
-  emptyMessage = "No shops found. Try searching for a different city.",
+  emptyMessage = "No workshops found for this search. Try selecting a different city or clearing filters.",
   className = "",
 }) => {
   return (
-    <div
-      className={`flex flex-col h-full max-h-screen md:max-h-none bg-gray-50 rounded-lg overflow-hidden ${className}`}
-    >
+    <div className={`flex flex-col h-full card overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="bg-white px-4 py-4 border-b border-gray-200 sticky top-0 z-10">
-        <h2 className="font-bold text-lg text-gray-900">
-          {shops.length > 0
-            ? `${shops.length} Shops Found`
-            : "Car Modification Shops"}
+      <div className="bg-slate-50 px-5 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
+        <h2 className="font-bold text-sm sm:text-base text-slate-900">
+          {shops.length > 0 ? `${shops.length} workshops` : "Modification workshops"}
         </h2>
       </div>
 
       {/* Scrollable List */}
-      <div className="flex-1 overflow-y-auto max-h-screen">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar max-h-[600px] sm:max-h-none">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center py-8">
-              <div className="inline-block">
-                <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-              </div>
-              <p className="mt-4 text-gray-600">Loading shops...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div
+              className="w-8 h-8 border-2 border-slate-300 border-t-blue-800 rounded-full animate-spin mb-3"
+              role="status"
+              aria-label="Loading"
+            />
+            <p className="text-slate-500 text-sm">Finding workshops...</p>
           </div>
         ) : shops.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center py-8 px-4">
-              <svg
-                className="w-12 h-12 mx-auto text-gray-400 mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 .268m-6 0a2 2 0 00-1-.268H5a2 2 0 00-2 2v4a2 2 0 002 2z"
-                />
-              </svg>
-              <p className="text-gray-600 text-sm">{emptyMessage}</p>
+          <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3 border border-slate-200">
+              <Wrench className="w-6 h-6" aria-hidden="true" />
             </div>
+            <p className="text-slate-800 text-sm font-medium">No workshops found</p>
+            <p className="text-slate-500 text-sm mt-1 max-w-xs">{emptyMessage}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 p-3">
-            {shops.map((shop) => (
+          shops.map((shop) => {
+            const key = shop.id || shop.documentId || shop.name;
+            const isSelected = activeShopId === shop.id || activeShopId === shop.documentId;
+            return (
               <ShopCard
-                key={shop.documentId}
+                key={key}
                 shop={shop}
                 onClick={onShopClick}
-                isActive={activeShopId === shop.documentId}
+                isActive={isSelected}
               />
-            ))}
-          </div>
+            );
+          })
         )}
       </div>
 
-      {/* Footer Info */}
+      {/* Footer Helper */}
       {shops.length > 0 && (
-        <div className="bg-white px-4 py-3 border-t border-gray-200 text-xs text-gray-500 text-center">
-          Click on a shop to see it on the map
+        <div className="bg-slate-50 px-4 py-2.5 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
+          <span>Select a workshop to focus it on the map</span>
+          <span>Total: {shops.length}</span>
         </div>
       )}
     </div>

@@ -1,18 +1,15 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
-import SearchBar from "@/components/molecules/SearchBar";
-import ShopList from "@/components/organisms/ShopList";
-
-import ResultsLayout from "@/components/templates/ResultsLayout";
-import { type Shop } from "@/components/molecules/ShopCard";
-import { useIsClient } from "@/hooks/useEnvironment";
-
+import React, { useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
+import { Search, Navigation, Filter, X } from "lucide-react";
+import { type Shop } from "@/components/molecules/ShopCard";
+import ShopList from "@/components/organisms/ShopList";
+import { useIsClient } from "@/hooks/useEnvironment";
 
 const MapView = dynamic(
   () => import("@/components/organisms/MapView").then((mod) => mod.default),
-  { ssr: false },
+  { ssr: false }
 );
 
 interface SearchLocation {
@@ -22,14 +19,11 @@ interface SearchLocation {
   addressType: "city" | "state" | "country";
 }
 
-/**
- * Calculate distance between two coordinates using Haversine formula (in km)
- */
 const calculateDistance = (
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number,
+  lng2: number
 ): number => {
   const R = 6371; // Earth's radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -48,8 +42,19 @@ interface CarModifiersPageProps {
   shops: Shop[];
 }
 
-const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => {
+const CITIES = [
+  { name: "All Cities", lat: 20.5937, lng: 78.9629, type: "country" as const },
+  { name: "Mumbai", lat: 19.19, lng: 72.8, type: "city" as const },
+  { name: "Bangalore", lat: 12.9716, lng: 77.5946, type: "city" as const },
+  { name: "Chennai", lat: 13.0827, lng: 80.2707, type: "city" as const },
+  { name: "Jaipur", lat: 26.9124, lng: 75.7873, type: "city" as const },
+  { name: "Ahmedabad", lat: 23.0225, lng: 72.5714, type: "city" as const },
+  { name: "Karnal", lat: 29.6857, lng: 76.9905, type: "city" as const },
+];
+
+export const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => {
   const [searchValue, setSearchValue] = useState("");
+  const [selectedCity, setSelectedCity] = useState("All Cities");
   const [activeShopId, setActiveShopId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [searchLocation, setSearchLocation] = useState<SearchLocation>({
@@ -58,233 +63,228 @@ const CarModifiersPage: React.FC<CarModifiersPageProps> = ({ shops }) => {
     address: "India",
     addressType: "country",
   });
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [visibleShops, setVisibleShops] = useState<Shop[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [geolocationDenied, setGeolocationDenied] = useState(false);
   const isClient = useIsClient();
 
-  /**
-   * Handle city search with actual coordinates
-   */
-  const handleSearch = useCallback(async () => {
+  const handleCitySelect = (city: (typeof CITIES)[0]) => {
+    setSelectedCity(city.name);
+    setSearchLocation({
+      lat: city.lat,
+      lng: city.lng,
+      address: city.name === "All Cities" ? "India" : city.name,
+      addressType: city.type,
+    });
+    setActiveShopId(undefined);
+    setError(null);
+  };
+
+  const handleSearch = useCallback(async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!searchValue.trim()) {
-      setError("Please enter a city or location");
+      setSelectedCity("All Cities");
+      setSearchLocation({
+        lat: 20.5937,
+        lng: 78.9629,
+        address: "India",
+        addressType: "country",
+      });
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setGeolocationDenied(false); // User is searching, so allow distance calculation
 
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
-      // If not in the static map, call server-side geocode endpoint (biased to India)
-      try {
-        const resp = await fetch(
-          `/api/geocode?q=${encodeURIComponent(searchValue)}`,
-        );
-        if (resp.ok) {
-          const json = await resp.json();
-          if (json && json.location) {
-            setSearchLocation({
-              lat: json.location.lat,
-              lng: json.location.lng,
-              address: json.formatted_address || searchValue,
-              addressType: json.addressType || "city",
-            });
-            setActiveShopId(undefined);
-            return;
-          }
-        } else {
-          console.warn("Server geocode returned", resp.status);
+      const resp = await fetch(`/api/geocode?q=${encodeURIComponent(searchValue)}`);
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json && json.location) {
+          setSearchLocation({
+            lat: json.location.lat,
+            lng: json.location.lng,
+            address: json.formatted_address || searchValue,
+            addressType: json.addressType || "city",
+          });
+          setSelectedCity(searchValue);
+          setActiveShopId(undefined);
+          return;
         }
-      } catch (e) {
-        console.error("Server geocode failed", e);
       }
-
-      setError(
-        `Could not find location "${searchValue}". Try a different place in India.`,
-      );
+      setError(`Could not find location "${searchValue}". Try cities like Mumbai, Jaipur, Bangalore, etc.`);
     } catch (err) {
-      setError("Failed to search for shops. Please try again.");
-      console.error("Search error:", err);
+      setError("Failed to geocode location. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }, [searchValue]);
 
-  /**
-   * Handle shop card click - center map on selected shop
-   */
-  const handleShopClick = useCallback((shop: Shop) => {
-    setActiveShopId(shop.documentId);
-    // Map will automatically center due to useEffect in MapView
-  }, []);
+  const handleUseMyLocation = () => {
+    if (navigator.geolocation) {
+      setIsLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setSearchLocation({
+            lat: latitude,
+            lng: longitude,
+            address: "Your Location",
+            addressType: "city",
+          });
+          setSelectedCity("Near Me");
+          setIsLoading(false);
+        },
+        () => {
+          setError("Location access denied. Please select a city manually.");
+          setIsLoading(false);
+        }
+      );
+    }
+  };
 
-  /**
-   * Sort shops: prioritize shops from searched city, then by distance from search location
-   */
-  const sortedShops = React.useMemo(() => {
-    const searchedCity = searchLocation.address.toLowerCase().trim();
-    const searchedCityKey =
-      searchedCity === "your location" ? "" : searchedCity.split(",")[0].trim();
-    const isInitialSearch = searchLocation.address === "India";
-
-    // Separate shops into two groups with calculated distances
-    const shopsFromSearchCity: Shop[] = [];
-    const otherShops: Shop[] = [];
-
-    // Use user location when available; otherwise fall back to searchLocation
+  const sortedShops = useMemo(() => {
     const origin = userLocation ?? {
       lat: searchLocation.lat,
       lng: searchLocation.lng,
     };
 
-    // Only calculate distances if:
-    // 1. User allowed geolocation (userLocation is set), OR
-    // 2. User has explicitly searched for a location (searchLocation is not default "India")
-    const shouldCalculateDistance = !geolocationDenied || !isInitialSearch;
+    const isCountry = searchLocation.address === "India" && !userLocation;
 
-    shops.forEach((shop) => {
-      const enrichedShop = { ...shop } as Shop;
+    return shops
+      .map((shop) => {
+        const distance = isCountry
+          ? undefined
+          : calculateDistance(origin.lat, origin.lng, shop.lat, shop.lng);
+        return { ...shop, distance };
+      })
+      .sort((a, b) => {
+        if (typeof a.distance === "number" && typeof b.distance === "number") {
+          return a.distance - b.distance;
+        }
+        return b.rating - a.rating;
+      });
+  }, [shops, searchLocation, userLocation]);
 
-      if (shouldCalculateDistance) {
-        const distance = calculateDistance(
-          origin.lat,
-          origin.lng,
-          shop.lat,
-          shop.lng,
-        );
-        enrichedShop.distance = distance;
-      }
-      // If geolocation denied and no search, don't set distance (leave as undefined)
-
-      // Check if shop is from the searched city
-      const shopCity = shop.address.toLowerCase();
-      if (searchedCityKey && shopCity.includes(searchedCityKey)) {
-        shopsFromSearchCity.push(enrichedShop);
-      } else {
-        otherShops.push(enrichedShop);
-      }
-    });
-
-    if (origin) {
-      // Sort both groups by distance when we have a user location
-      shopsFromSearchCity.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-      otherShops.sort((a, b) => (a.distance || 0) - (b.distance || 0));
-    } else {
-      // Without user location, sort by rating as a fallback
-      shopsFromSearchCity.sort((a, b) => b.rating - a.rating);
-      otherShops.sort((a, b) => b.rating - a.rating);
-    }
-
-    // Combine: searched city shops first, then all others
-    return [...shopsFromSearchCity, ...otherShops];
-  }, [shops, searchLocation, userLocation, geolocationDenied]);
-
-  // Show visible shops when zoomed in, otherwise show sorted shops
   const shopsForList = visibleShops !== null ? visibleShops : sortedShops;
 
   return (
-    <div className="flex flex-col w-full sm:h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
-          {/* Search Bar */}
-          <SearchBar
-            searchValue={searchValue}
-            onSearchChange={setSearchValue}
-            onSearch={handleSearch}
-            placeholder="Enter a city name (e.g., Mumbai, Delhi, Bengaluru)..."
+    <div id="workshops" className="w-full space-y-6 pt-4">
+      {/* Search & City Filter Bar */}
+      <div className="card p-5 sm:p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Search Form */}
+          <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
+              <label htmlFor="workshop-search" className="sr-only">
+                Search by city
+              </label>
+              <input
+                id="workshop-search"
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Search by city (e.g. Mumbai, Chennai, Jaipur, Karnal)..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-md bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-blue-700"
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchValue("");
+                    handleCitySelect(CITIES[0]);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-5 py-2.5 rounded-md bg-blue-800 hover:bg-blue-900 text-white text-sm font-semibold flex items-center gap-1.5"
+            >
+              <span>Search</span>
+            </button>
+          </form>
+
+          {/* Near Me GPS Button */}
+          <button
+            onClick={handleUseMyLocation}
+            className="px-4 py-2.5 rounded-md bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold flex items-center justify-center gap-2"
+          >
+            <Navigation className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Use my location</span>
+          </button>
+        </div>
+
+        {/* Quick Filter City Pills */}
+        <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="text-xs text-slate-500 font-medium flex items-center gap-1 mr-1 flex-shrink-0">
+            <Filter className="w-3 h-3" aria-hidden="true" />
+            Cities:
+          </span>
+          {CITIES.map((c) => (
+            <button
+              key={c.name}
+              onClick={() => handleCitySelect(c)}
+              className={`px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap border ${
+                selectedCity === c.name
+                  ? "bg-blue-50 text-blue-800 border-blue-700"
+                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Error Notice */}
+        {error && (
+          <div role="alert" className="mt-3 p-3 rounded-md bg-red-50 border border-red-300 text-red-800 text-sm">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Main Split View: Map + Workshops List */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Workshop Cards */}
+        <div className="lg:col-span-5 order-2 lg:order-1 h-full">
+          <ShopList
+            shops={shopsForList}
+            onShopClick={(shop) => {
+              const shopId = shop.id || shop.documentId || shop.name;
+              setActiveShopId(shopId);
+            }}
+            activeShopId={activeShopId}
             isLoading={isLoading}
           />
-
-          {/* Error Message */}
-          {error && (
-            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <svg
-                className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          )}
-
-          {/* Current Location Info */}
-          {searchLocation && (
-            <p className="text-xs text-gray-500 mt-3">
-              Showing results near:{" "}
-              <span className="font-semibold text-gray-700">
-                {searchLocation.address}
-              </span>
-            </p>
-          )}
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 sm:overflow-hidden">
-        <div className="h-full max-w-8xl mx-auto px-4 sm:px-4 lg:px-5 py-6">
+        {/* Right Column: Interactive Map */}
+        <div className="lg:col-span-7 order-1 lg:order-2 h-[450px] sm:h-[650px] sticky top-24">
           {isClient && (
-            <ResultsLayout
-              mainContent={
-                <MapView
-                  shops={sortedShops}
-                  activeShopId={activeShopId}
-                  centerLat={searchLocation.lat}
-                  centerLng={searchLocation.lng}
-                  addressType={searchLocation.addressType}
-                  onMarkerClick={handleShopClick}
-                  onVisibleShopsChange={setVisibleShops}
-                  onUserLocation={(lat, lng) => {
-                    setUserLocation({ lat, lng });
-                    setSearchLocation({
-                      lat,
-                      lng,
-                      address: "Your location",
-                      addressType: "city",
-                    });
-                  }}
-                  onUserLocationError={(msg) => {
-                    setError(msg);
-                    setGeolocationDenied(true);
-                  }}
-                  isLoading={isLoading}
-                />
-              }
-              sidebar={
-                <ShopList
-                  shops={shopsForList}
-                  onShopClick={handleShopClick}
-                  activeShopId={activeShopId}
-                  isLoading={isLoading}
-                />
-              }
+            <MapView
+              shops={sortedShops}
+              activeShopId={activeShopId}
+              centerLat={searchLocation.lat}
+              centerLng={searchLocation.lng}
+              addressType={searchLocation.addressType}
+              onMarkerClick={(shop) => {
+                const shopId = shop.id || shop.documentId || shop.name;
+                setActiveShopId(shopId);
+              }}
+              onVisibleShopsChange={setVisibleShops}
+              isLoading={isLoading}
             />
           )}
         </div>
-      </main>
-
-      {/* Footer Info */}
-      <footer className="bg-white border-t border-gray-200 py-4 px-4 text-center text-xs text-gray-500">
-        <p>
-          💡 Click on a shop card to center the map. Use the search bar to find
-          shops in different cities.
-        </p>
-      </footer>
+      </div>
     </div>
   );
 };

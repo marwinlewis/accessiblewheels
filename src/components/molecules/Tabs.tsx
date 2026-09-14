@@ -1,16 +1,32 @@
 "use client";
 
-import React, { useState, ReactNode, useEffect } from "react";
-import { type BlocksContent } from "@strapi/blocks-react-renderer";
-import BlockRendererClient from "./BlockRendererComponent";
+import React, { useState, useEffect } from "react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+  ExternalLink,
+  FileCheck2,
+  MapPin,
+} from "lucide-react";
+
+export interface KeyPoint {
+  title: string;
+  text: string;
+  linkUrl?: string;
+  linkLabel?: string;
+}
 
 export interface Tab {
   id: number;
   label: string;
+  slug: string;
   title: string;
   description?: string;
-  content?: BlocksContent;
-  children?: ReactNode;
+  keyPoints?: KeyPoint[];
+  content?: any;
+  showMap?: boolean;
+  children?: React.ReactNode;
 }
 
 interface TabsProps {
@@ -18,159 +34,194 @@ interface TabsProps {
   openedTab?: number;
 }
 
-const tabChangeEvent = new CustomEvent("tabChange");
+export const Tabs: React.FC<TabsProps> = ({ tabs, openedTab = 0 }) => {
+  const [activeTab, setActiveTab] = useState(openedTab);
+  const currentTab = tabs[activeTab] || tabs[0];
 
-const Tabs: React.FC<TabsProps> = ({ tabs, openedTab }: TabsProps) => {
-  const [activeTab, setActiveTab] = useState(openedTab || 0);
-  const currentTab = tabs[activeTab] as Tab;
-
-  const handleTabClick = (index: number) => {
-    if (activeTab === index) return;
+  const handleTabChange = (index: number) => {
     setActiveTab(index);
-    document.dispatchEvent(tabChangeEvent);
-  };
-
-  const onPreviousClick = () => {
-    setActiveTab(Math.max(0, activeTab - 1));
-    document.dispatchEvent(tabChangeEvent);
-  };
-
-  const onNextClick = () => {
-    setActiveTab(Math.min(tabs.length - 1, activeTab + 1));
-    document.dispatchEvent(tabChangeEvent);
-  };
-
-  useEffect(() => {
-    const onTabChange = () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-    document.addEventListener("tabChange", onTabChange);
-
-    return () => {
-      document.removeEventListener("tabChange", onTabChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    history.pushState({}, "", `step-${activeTab + 1}`);
-
-    if (activeTab >= 0) {
-      const activeTabButton = document.querySelector("button.active");
-
-      if (activeTabButton) {
-        activeTabButton.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center",
-        });
-      }
+    if (typeof window !== "undefined") {
+      const slug = tabs[index]?.slug || `step-${index + 1}`;
+      window.history.pushState({}, "", `/${slug}`);
     }
-  }, [activeTab]);
+  };
+
+  useEffect(() => {
+    if (openedTab >= 0 && openedTab < tabs.length) {
+      setActiveTab(openedTab);
+    }
+  }, [openedTab, tabs.length]);
+
+  if (!currentTab) return null;
 
   return (
-    <div className="w-full max-w-7xl m-auto">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Tab Headers */}
-        <div className="flex snap-center border-b border-gray-200 bg-gray-50 overflow-x-scroll snap-x snap-mandatory no-scrollbar scroll-smooth sm:overflow-hidden">
-          {tabs.map((tab, index) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabClick(index)}
-              className={`flex-1 py-4 px-2 text-center font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === index
-                  ? "bg-blue-600 text-white border-b-4 border-blue-700 active"
-                  : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <div className="text-sm md:text-base">{tab.label}</div>
-              <div className="text-xs md:text-sm truncate">{tab.title}</div>
-            </button>
-          ))}
+    <div id="guide" className="w-full max-w-7xl mx-auto py-8">
+      {/* Step Progress */}
+      <div className="card p-4 sm:p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-bold uppercase tracking-wide text-slate-600">
+            Step-by-step guide
+          </span>
+          <span className="text-xs font-semibold text-slate-600">
+            Step {activeTab + 1} of {tabs.length}
+          </span>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-4 pb-8 sm:p-8 bg-white">
-          {currentTab.content && (
-            <>
-              <div className="mb-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
-                    <span className="text-blue-600 font-bold text-lg">
-                      {currentTab.id}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    {currentTab.title}
-                  </h2>
-                </div>
-                {currentTab.description && (
-                  <p className="text-gray-600 ml-13">
-                    {currentTab.description}
-                  </p>
-                )}
-              </div>
+        <div
+          className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
+          role="tablist"
+          aria-label="Guide steps"
+        >
+          {tabs.map((tab, idx) => {
+            const isActive = activeTab === idx;
+            const isCompleted = activeTab > idx;
 
-              {/* Details List */}
-              {currentTab.content && (
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Key Points:
-                  </h3>
-                  {currentTab.content && (
-                    <div className="text-gray-700 pt-0.5">
-                      <BlockRendererClient content={currentTab.content} />
-                    </div>
-                  )}
+            return (
+              <button
+                key={tab.slug || idx}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => handleTabChange(idx)}
+                className={`flex flex-col p-3 sm:p-4 rounded-md text-left border transition-colors ${
+                  isActive
+                    ? "bg-blue-50 border-blue-700 text-slate-900"
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span
+                    className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                      isActive
+                        ? "bg-blue-800 text-white"
+                        : isCompleted
+                        ? "bg-slate-700 text-white"
+                        : "bg-slate-200 text-slate-600"
+                    }`}
+                  >
+                    {isCompleted ? <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> : idx + 1}
+                  </span>
+                  <span className="text-[10px] uppercase font-semibold text-slate-500 tracking-wide">
+                    {tab.label}
+                  </span>
                 </div>
-              )}
-            </>
-          )}
 
-          {currentTab.children && currentTab.children}
-          {/* Progress Indicator */}
-          <div className="mt-8">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Progress:</span>
-              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${((activeTab + 1) / tabs.length) * 100}%`,
-                  }}
-                />
-              </div>
-              <span className="text-sm text-gray-600 font-semibold">
-                {activeTab + 1}/{tabs.length}
-              </span>
-            </div>
-          </div>
+                <span className="text-xs sm:text-sm font-semibold line-clamp-1">
+                  {tab.title}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between p-4 pb-8">
-        <button
-          onClick={onPreviousClick}
-          disabled={activeTab === 0}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
-            activeTab === 0
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-gray-600 text-white hover:bg-gray-700"
-          }`}
-        >
-          Previous
-        </button>
-        <button
-          onClick={onNextClick}
-          disabled={activeTab === tabs.length - 1}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
-            activeTab === tabs.length - 1
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
-        >
-          {activeTab + 1 === tabs.length ? "Finish" : "Next"}
-        </button>
+      {/* Active Step Content */}
+      <div className="card p-6 sm:p-10 mb-8">
+        <div className="border-b border-slate-200 pb-6 mb-8">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <span className="px-2.5 py-1 text-xs font-bold uppercase tracking-wide bg-slate-100 text-slate-700 border border-slate-200 rounded">
+              {currentTab.label}
+            </span>
+            {currentTab.showMap && (
+              <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 rounded flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Includes workshop map</span>
+              </span>
+            )}
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            {currentTab.title}
+          </h2>
+
+          {currentTab.description && (
+            <p className="mt-3 text-base text-slate-700 max-w-3xl leading-relaxed">
+              {currentTab.description}
+            </p>
+          )}
+        </div>
+
+        {/* Key Points */}
+        {currentTab.keyPoints && currentTab.keyPoints.length > 0 && (
+          <div className="mb-10">
+            <h3 className="text-sm font-bold uppercase tracking-wide text-slate-700 mb-5 flex items-center gap-2">
+              <FileCheck2 className="w-4 h-4" aria-hidden="true" />
+              <span>What to do</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {currentTab.keyPoints.map((point, index) => (
+                <div
+                  key={index}
+                  className="p-5 rounded-md border border-slate-200 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center">
+                        {index + 1}
+                      </span>
+                      <h4 className="font-bold text-slate-900 text-sm">
+                        {point.title}
+                      </h4>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed mt-2">
+                      {point.text}
+                    </p>
+                  </div>
+
+                  {point.linkUrl && (
+                    <div className="mt-4 pt-3 border-t border-slate-200">
+                      <a
+                        href={point.linkUrl}
+                        target={point.linkUrl.startsWith("http") ? "_blank" : "_self"}
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-800 hover:underline"
+                      >
+                        <span>{point.linkLabel || "Open official portal"}</span>
+                        <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Embedded Children (e.g. Workshop Map on Step 3) */}
+        {currentTab.children && (
+          <div className="mt-8 pt-8 border-t border-slate-200">
+            {currentTab.children}
+          </div>
+        )}
+
+        {/* Step Navigation */}
+        <div className="mt-10 pt-6 border-t border-slate-200 flex items-center justify-between">
+          <button
+            onClick={() => handleTabChange(Math.max(0, activeTab - 1))}
+            disabled={activeTab === 0}
+            className={`px-4 py-2.5 rounded-md text-sm font-semibold flex items-center gap-2 border ${
+              activeTab === 0
+                ? "opacity-40 cursor-not-allowed text-slate-500 bg-slate-50 border-slate-200"
+                : "bg-white hover:bg-slate-100 text-slate-800 border-slate-300"
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+            <span>Previous step</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange(Math.min(tabs.length - 1, activeTab + 1))}
+            disabled={activeTab === tabs.length - 1}
+            className={`px-4 py-2.5 rounded-md text-sm font-semibold flex items-center gap-2 ${
+              activeTab === tabs.length - 1
+                ? "opacity-40 cursor-not-allowed text-slate-500 bg-slate-100"
+                : "bg-blue-800 hover:bg-blue-900 text-white"
+            }`}
+          >
+            <span>{activeTab === tabs.length - 1 ? "Last step" : "Next step"}</span>
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </div>
   );

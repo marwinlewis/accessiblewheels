@@ -1,20 +1,23 @@
-import { BlocksContent } from "@strapi/blocks-react-renderer";
+"use client";
+
+import React from "react";
 import Link from "next/link";
-import BlockRendererClient from "../molecules/BlockRendererComponent";
+import { ExternalLink, Settings } from "lucide-react";
 
 export interface FooterProps {
-  about: {
+  about?: {
     title?: string;
-    content?: BlocksContent;
+    content?: any;
+    text?: string;
   };
-  quickLinks: {
+  quickLinks?: {
     title?: string;
     links?: Array<{
       label: string;
       url: string;
     }>;
   };
-  contact: {
+  contact?: {
     title?: string;
     links?: Array<{
       label: string;
@@ -23,73 +26,132 @@ export interface FooterProps {
   };
 }
 
-const Footer = ({ about, quickLinks, contact }: FooterProps) => {
+export const Footer: React.FC<FooterProps> = ({ about, quickLinks, contact }) => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-800 text-gray-200 mt-12">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="md:col-span-2">
-            {about?.title && (
-              <h3 className="text-lg font-semibold text-white mb-4">
-                {about?.title}
-              </h3>
-            )}
-            <p className="text-sm text-gray-300 leading-relaxed">
-              {about?.content && (
-                <BlockRendererClient content={about?.content} />
-              )}
+    <footer className="w-full bg-slate-50 border-t border-slate-200 text-slate-700 mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+          {/* About */}
+          <div className="md:col-span-5 space-y-3">
+            <h2 className="text-base font-bold text-slate-900">
+              Adapted Vehicle India
+            </h2>
+
+            <p className="text-sm text-slate-600 leading-relaxed max-w-md">
+              {about?.text ||
+                "An independent, plain-language guide to buying and registering an adapted vehicle and getting a driving licence in India as a person with disability — with links to the official government portals for every step."}
+            </p>
+
+            <p className="text-xs text-slate-500 pt-1">
+              This site is not a government website. Always confirm current rules with the official portals listed below.
             </p>
           </div>
-          <div>
-            {quickLinks?.title && (
-              <h4 className="text-lg font-semibold text-white mb-4">
-                {quickLinks?.title}
-              </h4>
-            )}
-            {quickLinks?.links && (
-              <ul className="space-y-2">
-                {quickLinks.links.map((link, index) => (
-                  <li key={index}>
-                    <Link
-                      href={link.url}
-                      className="text-sm hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+
+          {/* Quick Links */}
+          <div className="md:col-span-3 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-900">
+              {quickLinks?.title || "Step-by-Step Guide"}
+            </h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/step-1" className="text-blue-800 hover:text-blue-900 hover:underline">
+                  Step 1: UDID Card &amp; Medical Assessment
+                </Link>
+              </li>
+              <li>
+                <Link href="/step-2" className="text-blue-800 hover:text-blue-900 hover:underline">
+                  Step 2: Buying &amp; Registering the Vehicle
+                </Link>
+              </li>
+              <li>
+                <Link href="/step-3" className="text-blue-800 hover:text-blue-900 hover:underline">
+                  Step 3: Workshops &amp; Learner&apos;s Licence
+                </Link>
+              </li>
+              <li>
+                <Link href="/step-4" className="text-blue-800 hover:text-blue-900 hover:underline">
+                  Step 4: Practical Test &amp; Licence
+                </Link>
+              </li>
+              <li>
+                <Link href="/#calculator" className="text-blue-800 hover:text-blue-900 hover:underline">
+                  GST &amp; Road Tax Rules
+                </Link>
+              </li>
+            </ul>
           </div>
 
-          {/* Contact */}
-          <div>
-            {contact?.title && (
-              <h4 className="text-lg font-semibold text-white mb-4">
-                {contact?.title}
-              </h4>
-            )}
-            {contact?.links && (
-              <ul className="space-y-2">
-                {contact.links.map((link, index) => (
-                  <li key={index}>
-                    <Link
-                      href={link.url}
-                      className="text-sm hover:text-white transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* Government Portals & Contact */}
+          <div className="md:col-span-4 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-900">
+              {contact?.title || "Official Portals"}
+            </h3>
+            <ul className="space-y-2.5 text-sm">
+              <li>
+                <a
+                  href="https://www.swavlambancard.gov.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
+                >
+                  <span>Swavlamban UDID Portal</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://sarathi.parivahan.gov.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
+                >
+                  <span>Parivahan Sarathi (Licence)</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://heavyindustries.gov.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
+                >
+                  <span>Ministry of Heavy Industries</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.linkedin.com/in/marwinlewis/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-blue-800 hover:text-blue-900 hover:underline"
+                >
+                  <span>Maintainer: Marwin Lewis</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+                </a>
+              </li>
+              <li className="pt-1">
+                <a href="/admin"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-100"
+                >
+                  <Settings className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Content Admin</span>
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-        <div className="border-t border-gray-700 pt-8">
-          <p className="text-center text-xs text-gray-400">
-            &copy; {currentYear} All rights reserved.
+
+        {/* Disclaimer & Copyright */}
+        <div className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-500">
+          <p>
+            &copy; {currentYear} AdaptedVehicle.in. Information is based on the Central Motor Vehicles Rules,
+            GST Council notifications and Ministry of Heavy Industries circulars, and is provided for general
+            guidance only — it is not legal advice. Rules change; always verify with the official portals above
+            or your local RTO before relying on any figure here.
           </p>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { SUPPORTED_LANGUAGES, DEFAULT_LOCALE } from "@/i18n/languages";
 
 export async function GET() {
   const pages = await getGuidePages();
-  const baseUrl = (process.env.NEXT_PUBLIC_SERVER_URL || "https://adaptedvehicle.in").replace(/\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_API_ORIGIN || "https://accessiblewheels.vercel.app").replace(/\/$/, "");
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n';

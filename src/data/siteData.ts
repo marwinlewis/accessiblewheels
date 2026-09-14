@@ -138,7 +138,7 @@ export const guidePages: GuidePageData[] = [
       {
         title: 'Choose a certified modification workshop',
         text: 'If retrofitting an existing vehicle, ask the workshop directly for proof of its current ARAI or ICAT certification before booking — do not assume a workshop is certified just because it advertises retrofitting services.',
-        linkUrl: '/step-3#workshops',
+        linkUrl: '/step-3',
         linkLabel: 'Find a workshop',
       },
       {
